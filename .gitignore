@@ -1,0 +1,13 @@
+# Visual Studio
+.vs/
+
+# Build output
+**/bin/
+**/obj/
+
+# User-specific IDE settings
+*.user
+*.suo
+
+# Local diagnostic output
+loadout-consumer-output.txt

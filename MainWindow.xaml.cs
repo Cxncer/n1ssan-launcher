@@ -114,83 +114,68 @@ namespace n1ssan_launcher
 
             try
             {
+                if (!IsCS2Running())
+                {
+                    SetStatus(
+                        BridgeStatusCircle,
+                        BridgeStatusText,
+                        false,
+                        "Waiting for CS2");
+
+                    SetStatus(
+                        DllStatusCircle,
+                        DllStatusText,
+                        false,
+                        "Waiting for Bridge");
+
+                    SystemReadinessText.Text =
+                        "Waiting for Counter-Strike 2";
+
+                    SystemReadinessText.Foreground =
+                        new SolidColorBrush(Color.FromRgb(146, 151, 144));
+
+                    return;
+                }
+
                 using HttpResponseMessage response =
                     await _httpClient.GetAsync(HealthUrl);
 
                 response.EnsureSuccessStatusCode();
 
-                string json =
-                    await response.Content.ReadAsStringAsync();
-
-                using JsonDocument document =
-                    JsonDocument.Parse(json);
-
-                JsonElement root = document.RootElement;
-
-                bool hasLoadout =
-                    root.TryGetProperty(
-                        "hasLoadout",
-                        out JsonElement loadoutValue)
-                    && loadoutValue.ValueKind == JsonValueKind.True;
-
-                bool hasLoadoutName =
-                    root.TryGetProperty(
-                        "loadoutName",
-                        out JsonElement nameValue)
-                    && nameValue.ValueKind == JsonValueKind.String
-                    && !string.IsNullOrWhiteSpace(nameValue.GetString());
-
-                string loadoutName = hasLoadoutName
-                    ? nameValue.GetString()!
-                    : "Unknown Loadout";
-
                 SetStatus(
                     BridgeStatusCircle,
                     BridgeStatusText,
                     true,
-                    "n1ssan Online");
+                    "Bridge detected");
 
                 SetStatus(
-                    DataStatusCircle,
-                    DataStatusText,
-                    hasLoadout && hasLoadoutName,
-                    hasLoadout && hasLoadoutName
-                        ? $"Selected Loadout: {loadoutName}"
-                        : "Selected Loadout: None");
+                    DllStatusCircle,
+                    DllStatusText,
+                    false,
+                    "Awaiting injection");
 
-                if (!_preflightPassed)
-                {
-                    SystemReadinessText.Text =
-                        hasLoadout && hasLoadoutName
-                            ? "System checks complete — loadout available"
-                            : "Bridge online — awaiting a saved loadout";
+                SystemReadinessText.Text =
+                    "Bridge available — awaiting DLL injection";
 
-                    SystemReadinessText.Foreground =
-                        new SolidColorBrush(
-                            hasLoadout && hasLoadoutName
-                                ? Color.FromRgb(30, 215, 96)
-                                : Color.FromRgb(230, 170, 60));
-                }
+                SystemReadinessText.Foreground =
+                    new SolidColorBrush(Color.FromRgb(230, 170, 60));
             }
             catch (Exception)
             {
-                _preflightPassed = false;
-                _validatedLoadoutSnapshot = null;
-
                 SetStatus(
                     BridgeStatusCircle,
                     BridgeStatusText,
                     false,
-                    "n1ssan Offline");
+                    "Bridge unavailable");
 
                 SetStatus(
-                    DataStatusCircle,
-                    DataStatusText,
+                    DllStatusCircle,
+                    DllStatusText,
                     false,
-                    "Data unavailable");
+                    "Injection not started");
 
                 SystemReadinessText.Text =
-                    "System check failed — bridge unavailable";
+                    "Bridge unavailable";
 
                 SystemReadinessText.Foreground =
                     new SolidColorBrush(Color.FromRgb(240, 100, 100));

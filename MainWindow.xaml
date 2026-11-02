@@ -155,12 +155,12 @@
                             MinHeight="165">
 
                         <StackPanel>
-                            <TextBlock Text="02 / LOADOUT DATA"
+                            <TextBlock Text="02 / BRIDGE INITIALIZATION"
                                        FontSize="9"
                                        FontWeight="Bold"
                                        Foreground="{StaticResource MutedTextBrush}"/>
 
-                            <TextBlock Text="Saved Loadout"
+                            <TextBlock Text="n1ssan Bridge"
                                        FontSize="16"
                                        FontWeight="SemiBold"
                                        Margin="0,19,0,0"/>
@@ -197,12 +197,12 @@
                             MinHeight="165">
 
                         <StackPanel>
-                            <TextBlock Text="03 / LOCAL SERVICE"
+                            <TextBlock Text="03 / DLL INJECTION"
                                        FontSize="9"
                                        FontWeight="Bold"
                                        Foreground="{StaticResource MutedTextBrush}"/>
 
-                            <TextBlock Text="n1ssan Bridge"
+                            <TextBlock Text="n1ssan DLL"
                                        FontSize="16"
                                        FontWeight="SemiBold"
                                        Margin="0,19,0,0"/>
