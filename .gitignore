@@ -5,9 +5,9 @@
 **/bin/
 **/obj/
 
-# User-specific IDE settings
+# User-specific settings
 *.user
 *.suo
 
-# Local diagnostic output
+# Local diagnostics
 loadout-consumer-output.txt

@@ -169,14 +169,14 @@
                                         VerticalAlignment="Center"
                                         Margin="0,17,0,0">
 
-                                <Ellipse x:Name="DataStatusCircle"
+                                <Ellipse x:Name="BridgeStatusCircle"
                                          Width="9"
                                          Height="9"
                                          Stroke="{StaticResource SecondaryTextBrush}"
                                          StrokeThickness="1.5"
                                          Fill="#33171819"/>
 
-                                <TextBlock x:Name="DataStatusText"
+                                <TextBlock x:Name="BridgeStatusText"
                                            Text="Waiting for data"
                                            FontSize="11"
                                            Foreground="{StaticResource SecondaryTextBrush}"
@@ -211,14 +211,14 @@
                                         VerticalAlignment="Center"
                                         Margin="0,17,0,0">
 
-                                <Ellipse x:Name="BridgeStatusCircle"
+                                <Ellipse x:Name="DllStatusCircle"
                                          Width="9"
                                          Height="9"
                                          Stroke="{StaticResource SecondaryTextBrush}"
                                          StrokeThickness="1.5"
                                          Fill="#33171819"/>
 
-                                <TextBlock x:Name="BridgeStatusText"
+                                <TextBlock x:Name="DllStatusText"
                                            Text="Waiting for connection"
                                            FontSize="11"
                                            Foreground="{StaticResource SecondaryTextBrush}"
