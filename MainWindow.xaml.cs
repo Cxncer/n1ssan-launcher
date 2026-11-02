@@ -24,6 +24,9 @@ namespace n1ssan_launcher
                 Timeout = TimeSpan.FromSeconds(2)
             };
 
+        private readonly BridgeProcessManager _bridgeManager = new();
+        private readonly StartupStateMachine _startupStateMachine = new();
+
         private bool _bridgeCheckInProgress;
         private bool _preflightPassed;
         private bool _dominateInProgress;
@@ -49,6 +52,8 @@ namespace n1ssan_launcher
         {
             InitializeComponent();
 
+            _startupStateMachine.StateChanged += OnStartupStateChanged;
+
             Background = new SolidColorBrush(
                 Color.FromRgb(8, 9, 9));
 
@@ -64,6 +69,89 @@ namespace n1ssan_launcher
             _ = UpdateBridgeStatusAsync();
 
             _statusTimer.Start();
+        }
+
+        private void OnStartupStateChanged(StartupState state)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                switch (state)
+                {
+                    case StartupState.WaitingForGame:
+                        UpdateCs2Status(false, "Waiting for CS2");
+                        UpdateBridgeStatus(false, "Waiting for game");
+                        UpdateDllStatus(false, "Waiting for connection");
+                        SystemReadinessText.Text = "Waiting for Counter-Strike 2.";
+                        break;
+
+                    case StartupState.GameDetected:
+                        UpdateCs2Status(true, "CS2 detected");
+                        UpdateBridgeStatus(false, "Waiting to initialize");
+                        UpdateDllStatus(false, "Waiting for bridge");
+                        SystemReadinessText.Text = "CS2 detected. Preparing n1ssan.";
+                        break;
+
+                    case StartupState.BridgeStarting:
+                        UpdateBridgeStatus(false, "Initializing...");
+                        SystemReadinessText.Text = "Initializing n1ssan Bridge.";
+                        break;
+
+                    case StartupState.BridgeReady:
+                        UpdateBridgeStatus(true, "Bridge initialized");
+                        UpdateDllStatus(false, "Waiting for integration");
+                        SystemReadinessText.Text = "Bridge initialized - awaiting DLL integration.";
+                        break;
+
+                    case StartupState.LoaderStarting:
+                        UpdateDllStatus(false, "Preparing...");
+                        SystemReadinessText.Text = "Preparing DLL integration.";
+                        break;
+
+                    case StartupState.DllInitializing:
+                        UpdateDllStatus(false, "Initializing...");
+                        SystemReadinessText.Text = "Waiting for DLL initialization.";
+                        break;
+
+                    case StartupState.Ready:
+                        UpdateCs2Status(true, "CS2 detected");
+                        UpdateBridgeStatus(true, "Bridge connected");
+                        UpdateDllStatus(true, "DLL connected");
+                        SystemReadinessText.Text = "n1ssan is connected and ready.";
+                        break;
+
+                    case StartupState.Failed:
+                        SystemReadinessText.Text = "Startup failed. Check component status.";
+                        break;
+                }
+            });
+        }
+
+
+        private void UpdateCs2Status(bool isReady, string message)
+        {
+            SetStatus(
+                Cs2StatusCircle,
+                Cs2StatusText,
+                isReady,
+                message);
+        }
+
+        private void UpdateBridgeStatus(bool isReady, string message)
+        {
+            SetStatus(
+                BridgeStatusCircle,
+                BridgeStatusText,
+                isReady,
+                message);
+        }
+
+        private void UpdateDllStatus(bool isReady, string message)
+        {
+            SetStatus(
+                DllStatusCircle,
+                DllStatusText,
+                isReady,
+                message);
         }
 
         // CHECK 1: Detect whether CS2 is running.
@@ -105,6 +193,7 @@ namespace n1ssan_launcher
         }
 
         // CHECKS 2 AND 3: Read local n1ssan status.
+
         private async Task UpdateBridgeStatusAsync()
         {
             if (_bridgeCheckInProgress)
@@ -132,21 +221,19 @@ namespace n1ssan_launcher
                         "Waiting for Counter-Strike 2";
 
                     SystemReadinessText.Foreground =
-                        new SolidColorBrush(Color.FromRgb(146, 151, 144));
+                        new SolidColorBrush(
+                            Color.FromRgb(146, 151, 144));
 
                     return;
                 }
 
-                using HttpResponseMessage response =
-                    await _httpClient.GetAsync(HealthUrl);
-
-                response.EnsureSuccessStatusCode();
+                await _bridgeManager.EnsureRunningAsync();
 
                 SetStatus(
                     BridgeStatusCircle,
                     BridgeStatusText,
                     true,
-                    "Bridge detected");
+                    "Bridge initialized");
 
                 SetStatus(
                     DllStatusCircle,
@@ -155,13 +242,17 @@ namespace n1ssan_launcher
                     "Awaiting injection");
 
                 SystemReadinessText.Text =
-                    "Bridge available — awaiting DLL injection";
+                    "Bridge initialized — awaiting DLL injection";
 
                 SystemReadinessText.Foreground =
-                    new SolidColorBrush(Color.FromRgb(230, 170, 60));
+                    new SolidColorBrush(
+                        Color.FromRgb(230, 170, 60));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.WriteLine(
+                    "[DOMINATE] Bridge initialization failed: " + ex);
+
                 SetStatus(
                     BridgeStatusCircle,
                     BridgeStatusText,
@@ -175,16 +266,18 @@ namespace n1ssan_launcher
                     "Injection not started");
 
                 SystemReadinessText.Text =
-                    "Bridge unavailable";
+                    "Bridge initialization failed";
 
                 SystemReadinessText.Foreground =
-                    new SolidColorBrush(Color.FromRgb(240, 100, 100));
+                    new SolidColorBrush(
+                        Color.FromRgb(240, 100, 100));
             }
             finally
             {
                 _bridgeCheckInProgress = false;
             }
         }
+
 
         private void SetStatus(
             System.Windows.Shapes.Ellipse circle,
