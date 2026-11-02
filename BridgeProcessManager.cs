@@ -22,10 +22,14 @@ namespace n1ssan_launcher
 
         public async Task EnsureRunningAsync()
         {
-            if (await IsHealthyAsync())
-                return;
-
             string bridgeRoot = ResolveBridgeRoot();
+            string dataFile = ResolveDataFile(bridgeRoot);
+
+            if (await IsHealthyAsync())
+            {
+                EnsureDataFileExists(dataFile);
+                return;
+            }
 
             var startInfo = new ProcessStartInfo
             {
@@ -73,7 +77,10 @@ namespace n1ssan_launcher
                 }
 
                 if (await IsHealthyAsync())
+                {
+                    EnsureDataFileExists(dataFile);
                     return;
+                }
 
                 await Task.Delay(300);
             }
@@ -137,6 +144,37 @@ namespace n1ssan_launcher
 
             throw new DirectoryNotFoundException(
                 "Could not locate the n1ssan-web-bridge project.");
+        }
+
+        private static string ResolveDataFile(string bridgeRoot)
+        {
+            string? configured =
+                Environment.GetEnvironmentVariable("N1SSAN_DATA_FILE");
+
+            return string.IsNullOrWhiteSpace(configured)
+                ? Path.Combine(bridgeRoot, "n1ssan-data.json")
+                : Path.GetFullPath(configured);
+        }
+
+        private static void EnsureDataFileExists(string dataFile)
+        {
+            if (!File.Exists(dataFile))
+            {
+                throw new FileNotFoundException(
+                    "n1ssan Bridge is online, but its data file was not found: " +
+                    dataFile,
+                    dataFile);
+            }
+
+            var info = new FileInfo(dataFile);
+            if (info.Length == 0)
+            {
+                throw new InvalidDataException(
+                    "n1ssan Bridge data file is empty: " + dataFile);
+            }
+
+            Debug.WriteLine(
+                $"[Bridge] Data file verified: {dataFile} ({info.Length} bytes)");
         }
 
         private static bool IsValidBridgeRoot(string path)
