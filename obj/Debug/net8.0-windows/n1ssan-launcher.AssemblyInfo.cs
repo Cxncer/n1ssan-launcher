@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("n1ssan-launcher")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d6f918f85e016f96a0f962027768b78fd526ab3b")]
 [assembly: System.Reflection.AssemblyProductAttribute("n1ssan-launcher")]
 [assembly: System.Reflection.AssemblyTitleAttribute("n1ssan-launcher")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

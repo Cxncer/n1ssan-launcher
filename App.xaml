@@ -1,9 +1,86 @@
 ﻿<Application x:Class="n1ssan_launcher.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:n1ssan_launcher"
              StartupUri="MainWindow.xaml">
+
     <Application.Resources>
-         
+
+        <!-- Core palette -->
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#121212"/>
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#1B1B1B"/>
+        <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#242424"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#303030"/>
+
+        <!-- Typography -->
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F5F5F5"/>
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#A0A0A0"/>
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#686868"/>
+
+        <!-- Status -->
+        <SolidColorBrush x:Key="AccentBrush" Color="#25D366"/>
+        <SolidColorBrush x:Key="ErrorBrush" Color="#E5484D"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#E5A93D"/>
+
+        <!-- Shared button style -->
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBackground"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="7">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBackground"
+                                        Property="Background"
+                                        Value="#303030"/>
+                                <Setter Property="Foreground"
+                                        Value="{StaticResource PrimaryTextBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- CS2: Top-left → bottom-right -->
+        <LinearGradientBrush x:Key="Cs2CardGradient"
+                     StartPoint="0,0"
+                     EndPoint="1,1">
+            <GradientStop Color="#292929" Offset="0.0"/>
+            <GradientStop Color="#202020" Offset="0.5"/>
+            <GradientStop Color="#151515" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <!-- LOADOUT: Top-right → bottom-left -->
+        <LinearGradientBrush x:Key="LoadoutCardGradient"
+                     StartPoint="1,0"
+                     EndPoint="0,1">
+            <GradientStop Color="#292929" Offset="0.0"/>
+            <GradientStop Color="#202020" Offset="0.5"/>
+            <GradientStop Color="#151515" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <!-- BRIDGE: Bottom-left → top-right -->
+        <LinearGradientBrush x:Key="BridgeCardGradient"
+                     StartPoint="0,1"
+                     EndPoint="1,0">
+            <GradientStop Color="#292929" Offset="0.0"/>
+            <GradientStop Color="#202020" Offset="0.5"/>
+            <GradientStop Color="#151515" Offset="1.0"/>
+        </LinearGradientBrush>
+
     </Application.Resources>
 </Application>

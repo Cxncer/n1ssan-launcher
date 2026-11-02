@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Vibe Coding\\CS2 Lore\\CS2 Lore\\n1ssan-launcher\\n1ssan-launcher\\n1ssan-launcher.csproj": {}
+    "E:\\Vibe Coding\\CS2 Lore\\CS2 Lore\\development\\n1ssan-launcher\\n1ssan-launcher.csproj": {}
   },
   "projects": {
-    "E:\\Vibe Coding\\CS2 Lore\\CS2 Lore\\n1ssan-launcher\\n1ssan-launcher\\n1ssan-launcher.csproj": {
+    "E:\\Vibe Coding\\CS2 Lore\\CS2 Lore\\development\\n1ssan-launcher\\n1ssan-launcher.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Vibe Coding\\CS2 Lore\\CS2 Lore\\n1ssan-launcher\\n1ssan-launcher\\n1ssan-launcher.csproj",
+        "projectUniqueName": "E:\\Vibe Coding\\CS2 Lore\\CS2 Lore\\development\\n1ssan-launcher\\n1ssan-launcher.csproj",
         "projectName": "n1ssan-launcher",
-        "projectPath": "E:\\Vibe Coding\\CS2 Lore\\CS2 Lore\\n1ssan-launcher\\n1ssan-launcher\\n1ssan-launcher.csproj",
+        "projectPath": "E:\\Vibe Coding\\CS2 Lore\\CS2 Lore\\development\\n1ssan-launcher\\n1ssan-launcher.csproj",
         "packagesPath": "C:\\Users\\mirac\\.nuget\\packages\\",
-        "outputPath": "E:\\Vibe Coding\\CS2 Lore\\CS2 Lore\\n1ssan-launcher\\n1ssan-launcher\\obj\\",
+        "outputPath": "E:\\Vibe Coding\\CS2 Lore\\CS2 Lore\\development\\n1ssan-launcher\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\mirac\\AppData\\Roaming\\NuGet\\NuGet.Config",
