@@ -246,7 +246,7 @@ namespace n1ssan_launcher
 
                 case StartupState.WebStarting:
 
-                    UpdateBridgeStatus(false, "Bridge online / Web starting");
+                    UpdateBridgeStatus(true, "Bridge online / Web starting");
 
                     SetReadiness(
                         "Starting Obsidian Web at http://127.0.0.1:5173/obsidian.html",
