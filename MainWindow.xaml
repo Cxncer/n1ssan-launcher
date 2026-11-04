@@ -197,7 +197,7 @@
                             MinHeight="165">
 
                         <StackPanel>
-                            <TextBlock Text="03 / DLL INJECTION"
+                            <TextBlock Text="03 / DLL STATUS MONITOR"
                                        FontSize="9"
                                        FontWeight="Bold"
                                        Foreground="{StaticResource MutedTextBrush}"/>
