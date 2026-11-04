@@ -18,6 +18,9 @@ namespace n1ssan_launcher
 
         private bool _startupInProgress;
         private bool _isClosing;
+        private bool _cs2Ready;
+        private bool _bridgeReady;
+        private bool _dllReady;
         private string _lastDllStatusMessage = string.Empty;
 
         public MainWindow()
@@ -80,6 +83,7 @@ namespace n1ssan_launcher
         private void UpdateCS2Status()
         {
             bool running = IsCS2Running();
+            _cs2Ready = running;
 
             UpdateCs2Status(
                 running,
@@ -216,6 +220,7 @@ namespace n1ssan_launcher
                     out bool isReady,
                     out bool isFailure);
 
+                _dllReady = found && isReady;
                 if (!found && snapshot == null)
                 {
                     UpdateDllStatus(false, message);
@@ -269,6 +274,9 @@ namespace n1ssan_launcher
             {
                 case StartupState.WaitingForGame:
 
+                    _cs2Ready = false;
+                    _bridgeReady = false;
+                    _dllReady = false;
                     UpdateCs2Status(false, "Waiting for CS2");
                     UpdateBridgeStatus(false, "Waiting for game");
                     UpdateDllStatus(false, "Waiting for connection");
@@ -303,6 +311,7 @@ namespace n1ssan_launcher
 
                 case StartupState.BridgeReady:
 
+                    _bridgeReady = true;
                     UpdateBridgeStatus(true, "Bridge initialized");
 
                     SetReadiness(
@@ -323,6 +332,7 @@ namespace n1ssan_launcher
 
                 case StartupState.WebReady:
 
+                    _bridgeReady = true;
                     UpdateBridgeStatus(true, "Bridge + Web online");
                     UpdateDllStatus(false, "Awaiting integration");
 
@@ -462,25 +472,21 @@ namespace n1ssan_launcher
             object sender,
             RoutedEventArgs e)
         {
+            UpdateCS2Status();
+            if (!_cs2Ready || !_bridgeReady || !_dllReady)
+            {
+                string missing = !_cs2Ready ? "CS2" :
+                    !_bridgeReady ? "Bridge" : "DLL READY heartbeat";
+                SetReadiness("DOMINATE is locked. Waiting for " + missing + ".", true);
+                StartupDiagnostics.Write("[DOMINATE] Workspace selector blocked; prerequisite missing: " + missing);
+                return;
+            }
+
             DashboardView.Visibility = Visibility.Collapsed;
             DestinationView.Visibility = Visibility.Visible;
             DominateButton.Visibility = Visibility.Collapsed;
-            BackToDashboardButton.Visibility = Visibility.Visible;
-
-            StartupDiagnostics.Write("[DOMINATE] Workspace selector opened.");
-            SetReadiness(
-                "Choose Armory to manage inventory or Loadout to configure equipment.",
-                false);
-        }
-
-        private void BackToDashboard_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            DestinationView.Visibility = Visibility.Collapsed;
-            DashboardView.Visibility = Visibility.Visible;
-            BackToDashboardButton.Visibility = Visibility.Collapsed;
-            DominateButton.Visibility = Visibility.Visible;
+            StartupDiagnostics.Write("[DOMINATE] All three checks are green. Workspace selector opened.");
+            SetReadiness("Choose Armory or Loadout.", false);
         }
 
         private async void Armory_Click(
@@ -535,18 +541,22 @@ namespace n1ssan_launcher
                     if (_isClosing)
                         return;
 
-                    Process.Start(new ProcessStartInfo
+                    Process? browser = Process.Start(new ProcessStartInfo
                     {
                         FileName = url,
                         UseShellExecute = true
                     });
 
+                    if (browser == null)
+                        throw new InvalidOperationException("The default browser could not be started.");
+                    browser.Dispose();
+
                     StartupDiagnostics.Write(
                         $"[DOMINATE] {workspaceName} opened in the default browser: {url}");
-
-                    SetReadiness(
-                        $"{workspaceName} opened in your default browser.",
-                        false);
+                    StartupDiagnostics.Write("[DOMINATE] Closing launcher; browser session now owns Bridge/Web lifetime.");
+                    _isClosing = true;
+                    _statusTimer.Stop();
+                    Close();
                 }
                 catch (Exception ex)
                 {
