@@ -1,4 +1,3 @@
-﻿
 using System;
 using System.Threading.Tasks;
 using System.Windows;
@@ -46,15 +45,10 @@ namespace n1ssan_launcher
             if (!IsVisible)
                 return;
 
+            // MainWindow starts its own single monitoring pipeline
+            // from its constructor; do not start a second loop here.
             var dashboard = new MainWindow();
-
-            public async void StartMonitoring()
-            {
-                await MonitorStartupAsync();
-            }
-
             dashboard.Show();
-            dashboard.StartMonitoring();
 
             Close();
         }
