@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -20,10 +20,16 @@ namespace n1ssan_launcher
 
         public async Task EnsureRunningAsync(string projectRoot)
         {
+            StartupDiagnostics.Write("[Obsidian Web] Startup requested. Root: " + projectRoot);
+            StartupDiagnostics.Write("[Obsidian Web] Application base: " + AppContext.BaseDirectory);
+
             // Reuse an already-running Vite instance instead of creating
             // another server when DOMINATE is restarted.
             if (await IsHealthyAsync())
+            {
+                StartupDiagnostics.Write("[Obsidian Web] Existing server is healthy.");
                 return;
+            }
 
             // A previous startup attempt may still own the process while
             // Vite is finishing initialization. Wait for it rather than
@@ -39,8 +45,12 @@ namespace n1ssan_launcher
                     "bin",
                     "vite.js");
 
+                StartupDiagnostics.Write("[Obsidian Web] Vite entry: " + viteEntry);
+                StartupDiagnostics.Write("[Obsidian Web] Working directory: " + projectRoot);
+
                 if (!File.Exists(viteEntry))
                 {
+                    StartupDiagnostics.Write("[Obsidian Web] ERROR: Vite entry file missing.");
                     throw new FileNotFoundException(
                         "Vite is not installed in n1ssan-web-bridge. " +
                         "Run npm install in the project directory.",
@@ -65,20 +75,22 @@ namespace n1ssan_launcher
                 startInfo.RedirectStandardOutput = true;
                 startInfo.RedirectStandardError = true;
 
+                StartupDiagnostics.Write("[Obsidian Web] Launching node. Arguments: " + string.Join(" ", startInfo.ArgumentList));
                 _process = Process.Start(startInfo)
                     ?? throw new InvalidOperationException(
                         "Could not start n1ssan Obsidian Web.");
+                StartupDiagnostics.Write("[Obsidian Web] Process started. PID: " + _process.Id);
 
                 _process.OutputDataReceived += (_, e) =>
                 {
                     if (e.Data != null)
-                        Debug.WriteLine("[Obsidian Web] " + e.Data);
+                        StartupDiagnostics.Write("[Obsidian Web stdout] " + e.Data);
                 };
 
                 _process.ErrorDataReceived += (_, e) =>
                 {
                     if (e.Data != null)
-                        Debug.WriteLine("[Obsidian Web Error] " + e.Data);
+                        StartupDiagnostics.Write("[Obsidian Web stderr] " + e.Data);
                 };
 
                 _process.BeginOutputReadLine();
@@ -98,6 +110,7 @@ namespace n1ssan_launcher
                 if (_process == null || _process.HasExited)
                 {
                     int exitCode = _process?.ExitCode ?? -1;
+                    StartupDiagnostics.Write("[Obsidian Web] Process exited before readiness. Exit code: " + exitCode);
 
                     throw new InvalidOperationException(
                         $"Obsidian Web exited with code {exitCode}. " +
@@ -106,8 +119,7 @@ namespace n1ssan_launcher
 
                 if (await IsHealthyAsync())
                 {
-                    Debug.WriteLine(
-                        "[Obsidian Web] Ready at " + WebUrl);
+                    StartupDiagnostics.Write("[Obsidian Web] Ready at " + WebUrl);
 
                     return;
                 }
@@ -115,6 +127,7 @@ namespace n1ssan_launcher
                 await Task.Delay(300);
             }
 
+            StartupDiagnostics.Write("[Obsidian Web] ERROR: Readiness timeout after 20 seconds.");
             throw new TimeoutException(
                 "n1ssan Obsidian Web did not become ready within 20 seconds.");
         }
@@ -139,8 +152,9 @@ namespace n1ssan_launcher
                     "/@vite/client",
                     StringComparison.OrdinalIgnoreCase);
             }
-            catch
+            catch (Exception ex)
             {
+                StartupDiagnostics.Write("[Obsidian Web] Health check failed: " + ex.GetType().Name + ": " + ex.Message);
                 return false;
             }
         }
