@@ -91,7 +91,7 @@ namespace n1ssan_launcher
                 "n1ssan Bridge did not become healthy within 15 seconds.");
         }
 
-        private static async Task<bool> IsHealthyAsync()
+        public async Task<bool> IsHealthyAsync()
         {
             try
             {
