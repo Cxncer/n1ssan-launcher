@@ -20,9 +20,11 @@ namespace n1ssan_launcher
 
         private Process? _process;
 
+        public string ProjectRoot => ResolveBridgeRoot();
+
         public async Task EnsureRunningAsync()
         {
-            string bridgeRoot = ResolveBridgeRoot();
+            string bridgeRoot = ProjectRoot;
             string dataFile = ResolveDataFile(bridgeRoot);
 
             if (await IsHealthyAsync())
