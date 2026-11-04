@@ -468,11 +468,17 @@ namespace n1ssan_launcher
         // DOMINATE
         // ========================================================
 
-        private void Dominate_Click(
+        private async void Dominate_Click(
             object sender,
             RoutedEventArgs e)
         {
+            SetReadiness("Verifying all DOMINATE system checks...", false);
             UpdateCS2Status();
+            UpdateDllStatusFromSnapshot();
+            _bridgeReady = await _bridgeManager.IsHealthyAsync();
+            UpdateBridgeStatus(_bridgeReady,
+                _bridgeReady ? "Bridge connected" : "Bridge unavailable");
+
             if (!_cs2Ready || !_bridgeReady || !_dllReady)
             {
                 string missing = !_cs2Ready ? "CS2" :
