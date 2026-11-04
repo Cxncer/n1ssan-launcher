@@ -20,72 +20,87 @@ namespace n1ssan_launcher
 
         public async Task EnsureRunningAsync(string projectRoot)
         {
-            string viteEntry = Path.Combine(
-                projectRoot,
-                "node_modules",
-                "vite",
-                "bin",
-                "vite.js");
-
-            if (!File.Exists(viteEntry))
-            {
-                throw new FileNotFoundException(
-                    "Vite is not installed in n1ssan-web-bridge. " +
-                    "Run npm install in the project directory.",
-                    viteEntry);
-            }
-
             // Reuse an already-running Vite instance instead of creating
             // another server when DOMINATE is restarted.
             if (await IsHealthyAsync())
                 return;
 
-            var startInfo = new ProcessStartInfo
+            // A previous startup attempt may still own the process while
+            // Vite is finishing initialization. Wait for it rather than
+            // launching a duplicate server.
+            if (_process == null || _process.HasExited)
             {
-                FileName = "node",
-                WorkingDirectory = projectRoot,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+                _process?.Dispose();
 
-            startInfo.ArgumentList.Add(viteEntry);
-            startInfo.ArgumentList.Add("--host");
-            startInfo.ArgumentList.Add("127.0.0.1");
-            startInfo.ArgumentList.Add("--port");
-            startInfo.ArgumentList.Add("5173");
-            startInfo.ArgumentList.Add("--strictPort");
+                string viteEntry = Path.Combine(
+                    projectRoot,
+                    "node_modules",
+                    "vite",
+                    "bin",
+                    "vite.js");
 
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
+                if (!File.Exists(viteEntry))
+                {
+                    throw new FileNotFoundException(
+                        "Vite is not installed in n1ssan-web-bridge. " +
+                        "Run npm install in the project directory.",
+                        viteEntry);
+                }
 
-            _process = Process.Start(startInfo)
-                ?? throw new InvalidOperationException(
-                    "Could not start n1ssan Obsidian Web.");
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "node",
+                    WorkingDirectory = projectRoot,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
 
-            _process.OutputDataReceived += (_, e) =>
+                startInfo.ArgumentList.Add(viteEntry);
+                startInfo.ArgumentList.Add("--host");
+                startInfo.ArgumentList.Add("127.0.0.1");
+                startInfo.ArgumentList.Add("--port");
+                startInfo.ArgumentList.Add("5173");
+                startInfo.ArgumentList.Add("--strictPort");
+
+                startInfo.RedirectStandardOutput = true;
+                startInfo.RedirectStandardError = true;
+
+                _process = Process.Start(startInfo)
+                    ?? throw new InvalidOperationException(
+                        "Could not start n1ssan Obsidian Web.");
+
+                _process.OutputDataReceived += (_, e) =>
+                {
+                    if (e.Data != null)
+                        Debug.WriteLine("[Obsidian Web] " + e.Data);
+                };
+
+                _process.ErrorDataReceived += (_, e) =>
+                {
+                    if (e.Data != null)
+                        Debug.WriteLine("[Obsidian Web Error] " + e.Data);
+                };
+
+                _process.BeginOutputReadLine();
+                _process.BeginErrorReadLine();
+            }
+            else
             {
-                if (e.Data != null)
-                    Debug.WriteLine("[Obsidian Web] " + e.Data);
-            };
-
-            _process.ErrorDataReceived += (_, e) =>
-            {
-                if (e.Data != null)
-                    Debug.WriteLine("[Obsidian Web Error] " + e.Data);
-            };
-
-            _process.BeginOutputReadLine();
-            _process.BeginErrorReadLine();
+                Debug.WriteLine(
+                    "[Obsidian Web] Waiting for the existing Vite process.");
+            }
 
             DateTime deadline =
                 DateTime.UtcNow.AddSeconds(20);
 
             while (DateTime.UtcNow < deadline)
             {
-                if (_process.HasExited)
+                if (_process == null || _process.HasExited)
                 {
+                    int exitCode = _process?.ExitCode ?? -1;
+
                     throw new InvalidOperationException(
-                        $"Obsidian Web exited with code {_process.ExitCode}. " +
+                        $"Obsidian Web exited with code {exitCode}. " +
                         "Check that dependencies are installed and port 5173 is free.");
                 }
 
