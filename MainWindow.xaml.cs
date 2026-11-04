@@ -12,6 +12,7 @@ namespace n1ssan_launcher
     {
         private readonly DispatcherTimer _statusTimer = new();
         private readonly BridgeProcessManager _bridgeManager = new();
+        private readonly WebProcessManager _webManager = new();
         private readonly StartupStateMachine _startupStateMachine = new();
 
         private bool _startupInProgress;
@@ -143,7 +144,27 @@ namespace n1ssan_launcher
                     StartupState.BridgeReady);
 
                 Debug.WriteLine(
-                    "[DOMINATE] Startup reached BridgeReady.");
+                    "[DOMINATE] Bridge is healthy. Starting Obsidian Web.");
+
+                // STEP 3: Start the Obsidian Vite development server.
+                _startupStateMachine.TryTransition(
+                    StartupState.WebStarting);
+
+                await _webManager.EnsureRunningAsync(
+                    _bridgeManager.ProjectRoot);
+
+                // Do not advance if CS2 closed during initialization.
+                if (!IsCS2Running())
+                {
+                    _startupStateMachine.Reset();
+                    return;
+                }
+
+                _startupStateMachine.TryTransition(
+                    StartupState.WebReady);
+
+                Debug.WriteLine(
+                    "[DOMINATE] Bridge and Obsidian Web are ready.");
 
                 // DLL integration is deliberately not reported as ready.
                 // The authorized loader and initialization handshake
@@ -216,10 +237,30 @@ namespace n1ssan_launcher
                 case StartupState.BridgeReady:
 
                     UpdateBridgeStatus(true, "Bridge initialized");
+
+                    SetReadiness(
+                        "Bridge online. Preparing Obsidian Web.",
+                        false);
+
+                    break;
+
+                case StartupState.WebStarting:
+
+                    UpdateBridgeStatus(false, "Bridge online / Web starting");
+
+                    SetReadiness(
+                        "Starting Obsidian Web at http://127.0.0.1:5173/obsidian.html",
+                        false);
+
+                    break;
+
+                case StartupState.WebReady:
+
+                    UpdateBridgeStatus(true, "Bridge + Web online");
                     UpdateDllStatus(false, "Awaiting integration");
 
                     SetReadiness(
-                        "Bridge initialized — awaiting DLL integration.",
+                        "Obsidian Web ready — http://127.0.0.1:5173/obsidian.html",
                         false);
 
                     break;
@@ -367,10 +408,10 @@ namespace n1ssan_launcher
             }
 
             if (_startupStateMachine.Current ==
-                StartupState.BridgeReady)
+                StartupState.WebReady)
             {
                 SetReadiness(
-                    "Bridge is ready. DLL integration is pending.",
+                    "Bridge and Obsidian Web are ready. DLL integration is pending.",
                     false);
 
                 return;
