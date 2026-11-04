@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,6 +21,9 @@ namespace n1ssan_launcher
         public MainWindow()
         {
             InitializeComponent();
+            StartupDiagnostics.Write("========== DOMINATE session started ==========");
+            StartupDiagnostics.Write("[DOMINATE] Log file: " + StartupDiagnostics.LogPath);
+            StartupDiagnostics.Write("[DOMINATE] Base directory: " + AppContext.BaseDirectory);
 
             _startupStateMachine.StateChanged += OnStartupStateChanged;
 
@@ -143,8 +146,7 @@ namespace n1ssan_launcher
                 _startupStateMachine.TryTransition(
                     StartupState.BridgeReady);
 
-                Debug.WriteLine(
-                    "[DOMINATE] Bridge is healthy. Starting Obsidian Web.");
+                StartupDiagnostics.Write("[DOMINATE] Bridge is healthy. Starting Obsidian Web.");
 
                 // STEP 3: Start the Obsidian Vite development server.
                 _startupStateMachine.TryTransition(
@@ -163,8 +165,7 @@ namespace n1ssan_launcher
                 _startupStateMachine.TryTransition(
                     StartupState.WebReady);
 
-                Debug.WriteLine(
-                    "[DOMINATE] Bridge and Obsidian Web are ready.");
+                StartupDiagnostics.Write("[DOMINATE] Bridge and Obsidian Web are ready.");
 
                 // DLL integration is deliberately not reported as ready.
                 // The authorized loader and initialization handshake
@@ -172,8 +173,7 @@ namespace n1ssan_launcher
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(
-                    "[DOMINATE] Startup failed: " + ex);
+                StartupDiagnostics.Write("[DOMINATE] Startup failed: " + ex);
 
                 _startupStateMachine.TryTransition(
                     StartupState.Failed);
