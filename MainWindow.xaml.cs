@@ -14,6 +14,7 @@ namespace n1ssan_launcher
         private readonly BridgeProcessManager _bridgeManager = new();
         private readonly WebProcessManager _webManager = new();
         private readonly StartupStateMachine _startupStateMachine = new();
+        private readonly System.Threading.SemaphoreSlim _destinationLaunchGate = new(1, 1);
 
         private bool _startupInProgress;
         private bool _isClosing;
@@ -457,39 +458,114 @@ namespace n1ssan_launcher
         // DOMINATE
         // ========================================================
 
-        private async void Dominate_Click(
+        private void Dominate_Click(
             object sender,
             RoutedEventArgs e)
         {
-            if (_startupInProgress)
+            DashboardView.Visibility = Visibility.Collapsed;
+            DestinationView.Visibility = Visibility.Visible;
+            DominateButton.Visibility = Visibility.Collapsed;
+            BackToDashboardButton.Visibility = Visibility.Visible;
+
+            StartupDiagnostics.Write("[DOMINATE] Workspace selector opened.");
+            SetReadiness(
+                "Choose Armory to manage inventory or Loadout to configure equipment.",
+                false);
+        }
+
+        private void BackToDashboard_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            DestinationView.Visibility = Visibility.Collapsed;
+            DashboardView.Visibility = Visibility.Visible;
+            BackToDashboardButton.Visibility = Visibility.Collapsed;
+            DominateButton.Visibility = Visibility.Visible;
+        }
+
+        private async void Armory_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            await OpenWorkspaceAsync(
+                "Armory",
+                "http://127.0.0.1:5173/obsidian.html");
+        }
+
+        private async void Loadout_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            await OpenWorkspaceAsync(
+                "Loadout",
+                "http://127.0.0.1:5173/?page=loadout");
+        }
+
+        private async Task OpenWorkspaceAsync(
+            string workspaceName,
+            string url)
+        {
+            if (_isClosing)
                 return;
 
-            if (!IsCS2Running())
+            await _destinationLaunchGate.WaitAsync();
+
+            try
             {
-                SetReadiness(
-                    "DOMINATE unavailable — CS2 is not running.",
-                    true);
+                // Let the automatic startup pipeline finish first so
+                // navigation cannot race Bridge or Vite initialization.
+                while (_startupInProgress && !_isClosing)
+                    await Task.Delay(100);
 
-                return;
+                if (_isClosing)
+                    return;
+
+                _startupInProgress = true;
+
+                try
+                {
+                    SetReadiness(
+                        $"Preparing {workspaceName}...",
+                        false);
+
+                    await _bridgeManager.EnsureRunningAsync();
+                    await _webManager.EnsureRunningAsync(
+                        _bridgeManager.ProjectRoot);
+
+                    if (_isClosing)
+                        return;
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true
+                    });
+
+                    StartupDiagnostics.Write(
+                        $"[DOMINATE] {workspaceName} opened in the default browser: {url}");
+
+                    SetReadiness(
+                        $"{workspaceName} opened in your default browser.",
+                        false);
+                }
+                catch (Exception ex)
+                {
+                    StartupDiagnostics.Write(
+                        $"[DOMINATE] Could not open {workspaceName}: {ex}");
+
+                    SetReadiness(
+                        $"Could not open {workspaceName}. Check the startup log.",
+                        true);
+                }
+                finally
+                {
+                    _startupInProgress = false;
+                }
             }
-
-            if (_startupStateMachine.Current ==
-                StartupState.WebReady)
+            finally
             {
-                SetReadiness(
-                    "Bridge and Obsidian Web are ready. DLL integration is pending.",
-                    false);
-
-                return;
+                _destinationLaunchGate.Release();
             }
-
-            if (_startupStateMachine.Current ==
-                StartupState.Failed)
-            {
-                _startupStateMachine.Reset();
-            }
-
-            await MonitorStartupAsync();
         }
 
         // ========================================================
