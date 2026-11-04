@@ -101,6 +101,9 @@ namespace n1ssan_launcher
                     case "CHECKS_PASSED":
                         message = "Checks passed · awaiting heartbeat";
                         break;
+                    case "DEGRADED":
+                        message = $"DLL degraded · {reason}";
+                        break;
                     default:
                         message = $"DLL state: {state}";
                         break;
