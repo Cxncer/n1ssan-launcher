@@ -478,21 +478,6 @@
                     </Button.Template>
                 </Button>
 
-                <Button x:Name="BackToDashboardButton"
-                        Content="←  BACK"
-                        Click="BackToDashboard_Click"
-                        Width="120"
-                        Height="44"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        Background="#242424"
-                        Foreground="{StaticResource PrimaryTextBrush}"
-                        FontSize="11"
-                        FontWeight="Bold"
-                        BorderThickness="1"
-                        BorderBrush="{StaticResource BorderBrush}"
-                        Cursor="Hand"
-                        Visibility="Collapsed"/>
             </Grid>
 
         </Grid>
