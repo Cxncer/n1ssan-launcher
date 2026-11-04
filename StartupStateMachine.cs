@@ -9,6 +9,8 @@ namespace n1ssan_launcher
         GameDetected,
         BridgeStarting,
         BridgeReady,
+        WebStarting,
+        WebReady,
         LoaderStarting,
         DllInitializing,
         Ready,
@@ -58,6 +60,12 @@ namespace n1ssan_launcher
                     StartupState.BridgeReady) => true,
 
                 (StartupState.BridgeReady,
+                    StartupState.WebStarting) => true,
+
+                (StartupState.WebStarting,
+                    StartupState.WebReady) => true,
+
+                (StartupState.WebReady,
                     StartupState.LoaderStarting) => true,
 
                 (StartupState.LoaderStarting,
