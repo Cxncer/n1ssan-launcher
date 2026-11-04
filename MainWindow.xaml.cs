@@ -17,6 +17,7 @@ namespace n1ssan_launcher
 
         private bool _startupInProgress;
         private bool _isClosing;
+        private string _lastDllStatusMessage = string.Empty;
 
         public MainWindow()
         {
@@ -36,6 +37,7 @@ namespace n1ssan_launcher
             {
                 UpdateCS2Status();
                 await MonitorStartupAsync();
+                UpdateDllStatusFromSnapshot();
             };
 
             UpdateCS2Status();
@@ -181,6 +183,70 @@ namespace n1ssan_launcher
             finally
             {
                 _startupInProgress = false;
+            }
+        }
+
+        // ========================================================
+        // READ-ONLY DLL STATUS MONITOR
+        // ========================================================
+
+        private void UpdateDllStatusFromSnapshot()
+        {
+            StartupState state = _startupStateMachine.Current;
+            if (state != StartupState.WebReady &&
+                state != StartupState.LoaderStarting &&
+                state != StartupState.DllInitializing &&
+                state != StartupState.Ready)
+            {
+                return;
+            }
+
+            Process[] processes = Process.GetProcessesByName("cs2");
+            try
+            {
+                if (processes.Length == 0)
+                    return;
+
+                Process game = processes[0];
+                bool found = DllStatusMonitor.TryRead(
+                    game.Id,
+                    out DllStatusSnapshot? snapshot,
+                    out string message,
+                    out bool isReady,
+                    out bool isFailure);
+
+                if (!found && snapshot == null)
+                {
+                    UpdateDllStatus(false, message);
+                }
+                else
+                {
+                    UpdateDllStatus(isReady, message);
+                }
+
+                if (!string.Equals(_lastDllStatusMessage, message,
+                    StringComparison.Ordinal))
+                {
+                    _lastDllStatusMessage = message;
+                    StartupDiagnostics.Write("[DOMINATE] DLL status: " + message);
+                }
+
+                if (isFailure)
+                {
+                    SetReadiness("DLL initialization failed: " +
+                        (snapshot?.Reason ?? "unknown error"), true);
+                }
+                else if (isReady)
+                {
+                    SetReadiness(
+                        "DLL worker heartbeat confirmed. Loader integration remains separate.",
+                        false);
+                }
+            }
+            finally
+            {
+                foreach (Process process in processes)
+                    process.Dispose();
             }
         }
 
