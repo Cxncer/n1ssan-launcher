@@ -64,9 +64,26 @@ namespace n1ssan_launcher
                     reportedPid, fields[4], state, reason, timestamp);
 
                 TimeSpan age = DateTimeOffset.UtcNow - timestamp;
-                if (age < TimeSpan.FromMinutes(-5) || age > HeartbeatTimeout)
+                if (age < TimeSpan.FromMinutes(-5))
                 {
-                    message = $"DLL status stale ({Math.Max(0, (int)age.TotalSeconds)}s)";
+                    message = "DLL status timestamp is in the future";
+                    return true;
+                }
+
+                // FAILED is terminal for this DLL session and remains useful
+                // after the worker exits. READY, by contrast, requires a live
+                // heartbeat and must never be inferred from an old snapshot.
+                if (state == "FAILED")
+                {
+                    isFailure = true;
+                    message = $"DLL failed · {reason}";
+                    return true;
+                }
+
+                if (age > HeartbeatTimeout)
+                {
+                    long ageSeconds = Math.Max(0L, (long)age.TotalSeconds);
+                    message = $"DLL status stale ({ageSeconds}s)";
                     return true;
                 }
 
@@ -75,10 +92,6 @@ namespace n1ssan_launcher
                     case "READY":
                         isReady = true;
                         message = $"DLL ready · {fields[4]}";
-                        break;
-                    case "FAILED":
-                        isFailure = true;
-                        message = $"DLL failed · {reason}";
                         break;
                     case "INITIALIZING":
                         message = "DLL initializing";
