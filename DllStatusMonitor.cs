@@ -21,6 +21,8 @@ namespace n1ssan_launcher
             {
                 string local = Environment.GetFolderPath(
                     Environment.SpecialFolder.LocalApplicationData);
+                if (string.IsNullOrWhiteSpace(local))
+                    local = Path.GetTempPath();
                 return Path.Combine(local, "n1ssan", "status");
             }
         }
