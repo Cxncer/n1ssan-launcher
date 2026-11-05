@@ -510,7 +510,7 @@ namespace n1ssan_launcher
         {
             await OpenWorkspaceAsync(
                 "Loadout",
-                "http://127.0.0.1:5173/?page=loadout");
+                "http://127.0.0.1:5173/loadout");
         }
 
         private async Task OpenWorkspaceAsync(
