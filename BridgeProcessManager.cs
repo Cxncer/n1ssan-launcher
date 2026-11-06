@@ -24,14 +24,15 @@ namespace n1ssan_launcher
 
         public string ProjectRoot => ResolveBridgeRoot();
 
-        public async Task EnsureRunningAsync()
+        public async Task EnsureRunningAsync(bool resetRuntimeMode = true)
         {
             string bridgeRoot = ProjectRoot;
             string dataFile = ResolveDataFile(bridgeRoot);
 
             if (await IsHealthyAsync())
             {
-                await ResetRuntimeModeAsync();
+                if (resetRuntimeMode)
+                    await ResetRuntimeModeAsync();
                 LogDataFileStatus(dataFile);
                 return;
             }
@@ -83,7 +84,8 @@ namespace n1ssan_launcher
 
                 if (await IsHealthyAsync())
                 {
-                    await ResetRuntimeModeAsync();
+                    if (resetRuntimeMode)
+                        await ResetRuntimeModeAsync();
                     LogDataFileStatus(dataFile);
                     return;
                 }
