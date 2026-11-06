@@ -102,7 +102,10 @@ namespace n1ssan_launcher
                         message = "Checks passed · awaiting heartbeat";
                         break;
                     case "DEGRADED":
-                        message = $"DLL degraded · {reason}";
+                        // The DLL contract treats DEGRADED as initialized with an optional
+                        // feature missing, so it satisfies the DOMINATE readiness check.
+                        isReady = true;
+                        message = $"DLL ready (degraded) · {reason}";
                         break;
                     default:
                         message = $"DLL state: {state}";
