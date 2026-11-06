@@ -743,7 +743,7 @@ namespace n1ssan_launcher
                         $"Preparing {workspaceName}...",
                         false);
 
-                    await _bridgeManager.EnsureRunningAsync();
+                    await _bridgeManager.EnsureRunningAsync(resetRuntimeMode: false);
                     await _webManager.EnsureRunningAsync(
                         _bridgeManager.ProjectRoot);
 
