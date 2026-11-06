@@ -68,9 +68,10 @@ namespace n1ssan_launcher
 
         private static IEnumerable<string> CandidateLayouts()
         {
-            yield return Path.Combine("n1ssan-injector", "bin", "Release", "net8.0-windows", InjectorExeName);
+            // Only use the maintained v2 repository. Falling back to the legacy
+            // n1ssan-injector folder can silently launch an executable that does not
+            // understand the current DOMINATE arguments or status contract.
             yield return Path.Combine("n1ssan-injectorv2", "bin", "Release", "net8.0-windows", InjectorExeName);
-            yield return Path.Combine("n1ssan-injector", InjectorExeName);
         }
 
         internal static async Task<InjectorResult> RunAsync(int pid, CancellationToken ct)
@@ -81,7 +82,7 @@ namespace n1ssan_launcher
             {
                 return new InjectorResult(
                     false, string.Empty, -1, false, string.Empty, string.Empty,
-                    $"Could not locate {InjectorExeName}. Build n1ssan-injector for x64 Release or set N1SSAN_INJECTOR_PATH.");
+                    $"Could not locate {InjectorExeName}. Build n1ssan-injectorv2 for x64 Release or set N1SSAN_INJECTOR_PATH.");
             }
 
             var startInfo = new ProcessStartInfo
