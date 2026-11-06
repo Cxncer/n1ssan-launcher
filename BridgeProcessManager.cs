@@ -29,7 +29,7 @@ namespace n1ssan_launcher
 
             if (await IsHealthyAsync())
             {
-                EnsureDataFileExists(dataFile);
+                LogDataFileStatus(dataFile);
                 return;
             }
 
@@ -80,7 +80,7 @@ namespace n1ssan_launcher
 
                 if (await IsHealthyAsync())
                 {
-                    EnsureDataFileExists(dataFile);
+                    LogDataFileStatus(dataFile);
                     return;
                 }
 
@@ -158,25 +158,22 @@ namespace n1ssan_launcher
                 : Path.GetFullPath(configured);
         }
 
-        private static void EnsureDataFileExists(string dataFile)
+        private static void LogDataFileStatus(string dataFile)
         {
+            // Loadout data is optional while the user is in Armory mode. DOMINATE
+            // must not prevent the Bridge from starting just because no Loadout
+            // profile has been projected yet; the native DLL validates the
+            // selected runtime mode and its own required data source.
             if (!File.Exists(dataFile))
             {
-                throw new FileNotFoundException(
-                    "n1ssan Bridge is online, but its data file was not found: " +
-                    dataFile,
-                    dataFile);
+                Debug.WriteLine(
+                    "[Bridge] Loadout data file is not present yet; continuing for Armory mode.");
+                return;
             }
 
             var info = new FileInfo(dataFile);
-            if (info.Length == 0)
-            {
-                throw new InvalidDataException(
-                    "n1ssan Bridge data file is empty: " + dataFile);
-            }
-
             Debug.WriteLine(
-                $"[Bridge] Data file verified: {dataFile} ({info.Length} bytes)");
+                $"[Bridge] Loadout data file: {dataFile} ({info.Length} bytes)");
         }
 
         private static bool IsValidBridgeRoot(string path)
