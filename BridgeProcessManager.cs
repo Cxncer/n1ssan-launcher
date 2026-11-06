@@ -12,6 +12,8 @@ namespace n1ssan_launcher
     {
         private const string HealthUrl =
             "http://127.0.0.1:3210/health";
+        private const string RuntimeModeResetUrl =
+            "http://127.0.0.1:3210/runtime-mode/reset";
 
         private static readonly HttpClient Client = new()
         {
@@ -29,6 +31,7 @@ namespace n1ssan_launcher
 
             if (await IsHealthyAsync())
             {
+                await ResetRuntimeModeAsync();
                 LogDataFileStatus(dataFile);
                 return;
             }
@@ -80,6 +83,7 @@ namespace n1ssan_launcher
 
                 if (await IsHealthyAsync())
                 {
+                    await ResetRuntimeModeAsync();
                     LogDataFileStatus(dataFile);
                     return;
                 }
@@ -156,6 +160,21 @@ namespace n1ssan_launcher
             return string.IsNullOrWhiteSpace(configured)
                 ? Path.Combine(bridgeRoot, "n1ssan-data.json")
                 : Path.GetFullPath(configured);
+        }
+
+        private static async Task ResetRuntimeModeAsync()
+        {
+            using var response = await Client.PostAsync(
+                RuntimeModeResetUrl,
+                new StringContent("{}", System.Text.Encoding.UTF8, "application/json"));
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException(
+                    $"Bridge could not reset the runtime mode (HTTP {(int)response.StatusCode}).");
+            }
+
+            Debug.WriteLine("[Bridge] Runtime mode reset to neutral; waiting for workspace selection.");
         }
 
         private static void LogDataFileStatus(string dataFile)
