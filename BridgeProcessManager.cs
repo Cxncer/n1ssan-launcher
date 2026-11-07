@@ -52,25 +52,46 @@ namespace n1ssan_launcher
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
 
+            StartupDiagnostics.Write(
+    "[Bridge] Starting Node. Working directory: " + bridgeRoot);
+
             _process = Process.Start(startInfo)
                 ?? throw new InvalidOperationException(
                     "Could not start n1ssan Bridge.");
 
+            StartupDiagnostics.Write(
+                "[Bridge] Process started. PID: " + _process.Id);
+
             _process.OutputDataReceived += (_, e) =>
             {
                 if (e.Data != null)
-                    Debug.WriteLine("[Bridge] " + e.Data);
+                    StartupDiagnostics.Write("[Bridge stdout] " + e.Data);
             };
 
             _process.ErrorDataReceived += (_, e) =>
             {
                 if (e.Data != null)
-                    Debug.WriteLine("[Bridge Error] " + e.Data);
+                    StartupDiagnostics.Write("[Bridge stderr] " + e.Data);
             };
+
+            _process.Exited += (_, _) =>
+            {
+                try
+                {
+                    StartupDiagnostics.Write(
+                        $"[Bridge] PROCESS EXITED. PID: {_process.Id}, Exit code: {_process.ExitCode}");
+                }
+                catch (Exception ex)
+                {
+                    StartupDiagnostics.Write(
+                        "[Bridge] Could not read exit details: " + ex.Message);
+                }
+            };
+
+            _process.EnableRaisingEvents = true;
 
             _process.BeginOutputReadLine();
             _process.BeginErrorReadLine();
-
             DateTime deadline =
                 DateTime.UtcNow.AddSeconds(15);
 
