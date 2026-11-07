@@ -187,21 +187,45 @@ namespace n1ssan_launcher
 
                 StartupDiagnostics.Write("[DOMINATE] Bridge and Obsidian Web are ready.");
 
-                // Native initialization is deliberately deferred until the user
-                // chooses Loadout or Armory. The selected mode must be written before
-                // injection because the DLL now refuses to default to either mode.
+                // Inject in neutral mode. The DLL must reach READY before the
+                // user opens the DOMINATE destination selector.
                 Cs2Instance? game = FindCs2();
-
                 if (game == null)
                 {
-                    StartupDiagnostics.Write("[DOMINATE] CS2 closed before workspace selection.");
+                    StartupDiagnostics.Write("[DOMINATE] CS2 closed before injection.");
                     _startupStateMachine.Reset();
                     return;
                 }
 
                 _cs2Pid = game.Pid;
+                _startupStateMachine.TryTransition(StartupState.LoaderStarting);
+
+                StartupDiagnostics.Write($"[DOMINATE] Injecting neutral runtime into CS2 PID={game.Pid}.");
+                InjectorResult injection = await InjectorRunner.RunAsync(game.Pid, CancellationToken.None);
                 StartupDiagnostics.Write(
-                    $"[DOMINATE] Bridge/Web ready. Waiting for explicit workspace selection before injection. PID={game.Pid}");
+                    $"[DOMINATE] Injector exit={injection.ExitCode}, timedOut={injection.TimedOut}, result={injection.ResultLine}");
+                if (!string.IsNullOrWhiteSpace(injection.Output))
+                    StartupDiagnostics.Write("[DOMINATE] Injector stdout: " + Compact(injection.Output));
+                if (!string.IsNullOrWhiteSpace(injection.Error))
+                    StartupDiagnostics.Write("[DOMINATE] Injector stderr: " + Compact(injection.Error));
+
+                if (!injection.Ok)
+                    throw new InvalidOperationException("Injector failed: " + InjectorRunner.Describe(injection));
+
+                _injectedPid = game.Pid;
+                _startupStateMachine.TryTransition(StartupState.DllInitializing);
+
+                (bool dllReady, string dllMessage, DllStatusSnapshot? dllSnapshot) =
+                    await WaitForDllReadyAsync(game.Pid, TimeSpan.FromSeconds(120));
+
+                if (!dllReady)
+                    throw new InvalidOperationException("The native runtime did not become ready: " + dllMessage);
+
+                _dllReady = true;
+                StartupDiagnostics.Write(
+                    "[DOMINATE] Neutral DLL is ready: " + dllMessage +
+                    (dllSnapshot != null ? $" (build {dllSnapshot.BuildId})" : string.Empty));
+                _startupStateMachine.TryTransition(StartupState.Ready);
             }
             catch (Exception ex)
             {
@@ -425,10 +449,10 @@ namespace n1ssan_launcher
 
                     _bridgeReady = true;
                     UpdateBridgeStatus(true, "Bridge + Web online");
-                    UpdateDllStatus(false, "Waiting for workspace selection");
+                    UpdateDllStatus(false, "Preparing neutral runtime");
 
                     SetReadiness(
-                        "Bridge and Web are ready. Choose Loadout or Armory to select the runtime mode and inject.",
+                        "Bridge and Web are ready. Preparing native runtime.",
                         false);
 
                     break;
@@ -460,8 +484,8 @@ namespace n1ssan_launcher
                     UpdateDllStatus(true, "DLL connected");
 
                     SetReadiness(
-                        "n1ssan is connected and ready.",
-                        true);
+                        "DLL ready. Click DOMINATE to choose Loadout or Armory.",
+                        false);
 
                     break;
 
@@ -569,8 +593,8 @@ namespace n1ssan_launcher
             UpdateBridgeStatus(_bridgeReady,
                 _bridgeReady ? "Bridge connected" : "Bridge unavailable");
 
-            if (_startupStateMachine.Current != StartupState.WebReady ||
-                !_cs2Ready || !_bridgeReady)
+            if (_startupStateMachine.Current != StartupState.Ready ||
+                !_cs2Ready || !_bridgeReady || !_dllReady)
             {
                 string missing = !_cs2Ready ? "CS2" :
                     !_bridgeReady ? "Bridge" :
@@ -583,7 +607,7 @@ namespace n1ssan_launcher
             DashboardView.Visibility = Visibility.Collapsed;
             DestinationView.Visibility = Visibility.Visible;
             DominateButton.Visibility = Visibility.Collapsed;
-            StartupDiagnostics.Write("[DOMINATE] CS2, Bridge, and Web are ready. Workspace selector opened; runtime mode will be selected before injection.");
+            StartupDiagnostics.Write("[DOMINATE] CS2, Bridge, Web, and neutral DLL are ready. Workspace selector opened; mode will be selected in the running DLL.");
             SetReadiness("Choose Armory or Loadout.", false);
         }
 
@@ -616,8 +640,6 @@ namespace n1ssan_launcher
 
             try
             {
-                // Let the automatic startup pipeline finish first so
-                // navigation cannot race Bridge or Vite initialization.
                 while (_startupInProgress && !_isClosing)
                     await Task.Delay(100);
 
@@ -628,81 +650,21 @@ namespace n1ssan_launcher
 
                 try
                 {
-                    SetReadiness(
-                        $"Preparing {workspaceName}...",
-                        false);
+                    SetReadiness($"Selecting {workspaceName} runtime mode...", false);
 
                     await _bridgeManager.EnsureRunningAsync(resetRuntimeMode: false);
-                    await _webManager.EnsureRunningAsync(
-                        _bridgeManager.ProjectRoot);
-
-                    if (_isClosing)
-                        return;
-
-                    if (!IsCS2Running())
-                        throw new InvalidOperationException("CS2 closed before runtime mode selection.");
-
-                    string runtimeMode = workspaceName == "Armory" ? "armory" : "loadout";
-                    StartupDiagnostics.Write($"[DOMINATE] Selecting runtime mode '{runtimeMode}' before injection.");
-                    await _bridgeManager.SelectRuntimeModeAsync(runtimeMode);
-
-                    _startupStateMachine.TryTransition(StartupState.LoaderStarting);
+                    await _webManager.EnsureRunningAsync(_bridgeManager.ProjectRoot);
 
                     Cs2Instance? game = FindCs2();
                     if (game == null)
                         throw new InvalidOperationException("CS2 is no longer running.");
 
-                    InjectorResult injection;
-                    if (_injectedPid == game.Pid)
-                    {
-                        StartupDiagnostics.Write("[DOMINATE] Injector skipped: this PID was already injected in this session.");
-                        injection = new InjectorResult(
-                            true, string.Empty, 0, false,
-                            "RESULT=OK status=already-loaded",
-                            string.Empty, string.Empty);
-                    }
-                    else
-                    {
-                        StartupDiagnostics.Write("[DOMINATE] Running n1ssan injector after runtime mode selection.");
-                        injection = await InjectorRunner.RunAsync(game.Pid, CancellationToken.None);
-                        StartupDiagnostics.Write(
-                            $"[DOMINATE] Injector exit={injection.ExitCode}, timedOut={injection.TimedOut}, result={injection.ResultLine}");
+                    if (!_dllReady || _injectedPid != game.Pid)
+                        throw new InvalidOperationException("The neutral DLL is not ready for the current CS2 process. Restart DOMINATE.");
 
-                        if (!string.IsNullOrWhiteSpace(injection.Output))
-                            StartupDiagnostics.Write("[DOMINATE] Injector stdout: " + Compact(injection.Output));
-                        if (!string.IsNullOrWhiteSpace(injection.Error))
-                            StartupDiagnostics.Write("[DOMINATE] Injector stderr: " + Compact(injection.Error));
-                    }
-
-                    if (_isClosing)
-                        return;
-
-                    if (!injection.Ok)
-                        throw new InvalidOperationException("Injector failed: " + InjectorRunner.Describe(injection));
-
-                    _injectedPid = game.Pid;
-                    _cs2Pid = game.Pid;
-                    _startupStateMachine.TryTransition(StartupState.DllInitializing);
-
-                    (bool dllReady, string dllMessage, DllStatusSnapshot? dllSnapshot) =
-                        await WaitForDllReadyAsync(game.Pid, TimeSpan.FromSeconds(120));
-
-                    if (_isClosing)
-                        return;
-
-                    if (!dllReady)
-                    {
-                        StartupDiagnostics.Write("[DOMINATE] DLL readiness failed: " + dllMessage);
-                        _startupStateMachine.TryTransition(StartupState.Failed);
-                        throw new InvalidOperationException(
-                            "The native runtime did not become ready: " + dllMessage);
-                    }
-
-                    _dllReady = true;
-                    StartupDiagnostics.Write(
-                        "[DOMINATE] DLL is ready: " + dllMessage +
-                        (dllSnapshot != null ? $" (build {dllSnapshot.BuildId})" : string.Empty));
-                    _startupStateMachine.TryTransition(StartupState.Ready);
+                    string runtimeMode = workspaceName == "Armory" ? "armory" : "loadout";
+                    StartupDiagnostics.Write($"[DOMINATE] Sending runtime mode '{runtimeMode}' to the already-injected DLL.");
+                    await _bridgeManager.SelectRuntimeModeAsync(runtimeMode);
 
                     Process? browser = Process.Start(new ProcessStartInfo
                     {
@@ -714,8 +676,7 @@ namespace n1ssan_launcher
                         throw new InvalidOperationException("The default browser could not be started.");
                     browser.Dispose();
 
-                    StartupDiagnostics.Write(
-                        $"[DOMINATE] {workspaceName} opened in the default browser: {url}");
+                    StartupDiagnostics.Write($"[DOMINATE] {workspaceName} opened: {url}");
                     StartupDiagnostics.Write("[DOMINATE] Closing launcher; browser session now owns Bridge/Web lifetime.");
                     _isClosing = true;
                     _statusTimer.Stop();
@@ -723,15 +684,8 @@ namespace n1ssan_launcher
                 }
                 catch (Exception ex)
                 {
-                    StartupDiagnostics.Write(
-                        $"[DOMINATE] Could not open {workspaceName}: {ex}");
-
-                    if (_startupStateMachine.Current != StartupState.Ready)
-                        _startupStateMachine.TryTransition(StartupState.Failed);
-
-                    SetReadiness(
-                        $"Could not open {workspaceName}. Check the startup log.",
-                        true);
+                    StartupDiagnostics.Write($"[DOMINATE] Could not open {workspaceName}: {ex}");
+                    SetReadiness($"Could not open {workspaceName}. Check the startup log.", true);
                 }
                 finally
                 {
