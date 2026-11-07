@@ -206,7 +206,36 @@ namespace n1ssan_launcher
                     $"Bridge did not confirm runtime mode '{mode}'. Response: {body}");
             }
 
-            Debug.WriteLine($"[Bridge] Runtime mode selected: {mode}. Native injection may proceed.");
+            // The Bridge write is only the request. Wait for the injected DLL to
+            // acknowledge that it has prepared and activated the selected mode.
+            string acknowledgementPath = Path.Combine(ProjectRoot, "runtime-mode-active.json");
+            DateTime deadline = DateTime.UtcNow.AddSeconds(15);
+            while (DateTime.UtcNow < deadline)
+            {
+                try
+                {
+                    if (File.Exists(acknowledgementPath))
+                    {
+                        using var acknowledgement = JsonDocument.Parse(
+                            await File.ReadAllTextAsync(acknowledgementPath));
+                        if (acknowledgement.RootElement.TryGetProperty("mode", out JsonElement active) &&
+                            string.Equals(active.GetString(), mode, StringComparison.Ordinal))
+                        {
+                            Debug.WriteLine($"[Bridge] DLL acknowledged active runtime mode: {mode}.");
+                            return;
+                        }
+                    }
+                }
+                catch (JsonException)
+                {
+                    // The DLL may be in the middle of replacing the small ack file.
+                }
+
+                await Task.Delay(250);
+            }
+
+            throw new TimeoutException(
+                $"The DLL did not acknowledge activation of runtime mode '{mode}' within 15 seconds.");
         }
 
         private static void LogDataFileStatus(string dataFile)
