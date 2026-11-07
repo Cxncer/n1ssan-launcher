@@ -1,0 +1,206 @@
+﻿<Window x:Class="n1ssan_launcher.WelcomeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="n1ssan"
+		Loaded="WelcomeWindow_Loaded"
+        Width="960"
+        Height="620"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="#080909"
+        AllowsTransparency="False">
+
+    <Window.Resources>
+        <DrawingBrush x:Key="GridBrush"
+                      TileMode="Tile"
+                      Viewport="0,0,40,40"
+                      ViewportUnits="Absolute">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing>
+                        <GeometryDrawing.Geometry>
+                            <GeometryGroup>
+                                <LineGeometry StartPoint="0,0" EndPoint="40,0"/>
+                                <LineGeometry StartPoint="0,0" EndPoint="0,40"/>
+                            </GeometryGroup>
+                        </GeometryDrawing.Geometry>
+                        <GeometryDrawing.Pen>
+                            <Pen Brush="#303030" Thickness="0.7"/>
+                        </GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+
+        <Style x:Key="WindowButton" TargetType="Button">
+            <Setter Property="Width" Value="38"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#999999"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root"
+                                        Property="Background"
+                                        Value="#252525"/>
+                                <Setter Property="Foreground"
+                                        Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StartButton" TargetType="Button">
+            <Setter Property="Width" Value="210"/>
+            <Setter Property="Height" Value="52"/>
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Foreground" Value="#111111"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="5">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root"
+                                        Property="Background"
+                                        Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root"
+                                        Property="Opacity"
+                                        Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root"
+                                        Property="Opacity"
+                                        Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="#080909">
+
+        <!-- Faded square grid -->
+        <Rectangle Fill="{StaticResource GridBrush}"
+                   Opacity="0.55">
+            <Rectangle.OpacityMask>
+                <RadialGradientBrush Center="0.5,0.48"
+                                     RadiusX="0.65"
+                                     RadiusY="0.65">
+                    <GradientStop Color="#EFFFFFFF" Offset="0"/>
+                    <GradientStop Color="#A0FFFFFF" Offset="0.55"/>
+                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                </RadialGradientBrush>
+            </Rectangle.OpacityMask>
+        </Rectangle>
+
+        <!-- Window controls -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,12,16,0">
+            <Button Style="{StaticResource WindowButton}"
+                    Content="—"
+                    Click="Minimize_Click"/>
+            <Button Style="{StaticResource WindowButton}"
+                    Content="×"
+                    Click="Close_Click"/>
+        </StackPanel>
+
+        <!-- Main content -->
+        <Grid>
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+
+                <!-- Branding -->
+                <TextBlock Text="n1ssan"
+                           FontFamily="Segoe UI"
+                           FontSize="43"
+                           FontWeight="Bold"
+                           Foreground="#F5F5F5"
+                           HorizontalAlignment="Center"/>
+
+                <TextBlock Text="CS2 INVENTORY"
+                           FontSize="10"
+                           FontWeight="SemiBold"
+                           Foreground="#858585"
+                           HorizontalAlignment="Center"
+                           Margin="0,5,0,42"/>
+
+                <!-- Circular loader -->
+                <Grid Width="190"
+                      Height="190"
+                      HorizontalAlignment="Center">
+
+                    <Ellipse Stroke="#555555"
+                             StrokeThickness="3"
+                             Opacity="0.55"/>
+
+                    <Ellipse x:Name="LoadingArc"
+                             Stroke="#F5F5F5"
+                             StrokeThickness="2.5"
+                             StrokeDashArray="0.75 3.2"
+                             StrokeDashCap="Round"
+                             RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform>
+                            <RotateTransform x:Name="ArcRotation"
+                                             Angle="0"/>
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
+
+                    <TextBlock Text="Loading..."
+                               Foreground="#A0A0A0"
+                               FontSize="10"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- Tagline -->
+                <TextBlock Text="Your loadout. Your environment. Your experience."
+                           Foreground="#999999"
+                           FontSize="11"
+                           HorizontalAlignment="Center"
+                           Margin="0,36,0,0"/>
+
+                <!-- CTA -->
+                <TextBlock Text="BETA BUILD"
+                           Foreground="#686868"
+                           FontSize="11"
+                           HorizontalAlignment="Center"
+                           Margin="0,28,0,0"/>
+
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+</Window>

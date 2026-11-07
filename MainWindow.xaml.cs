@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -14,9 +15,16 @@ namespace n1ssan_launcher
         private readonly BridgeProcessManager _bridgeManager = new();
         private readonly WebProcessManager _webManager = new();
         private readonly StartupStateMachine _startupStateMachine = new();
+        private readonly System.Threading.SemaphoreSlim _destinationLaunchGate = new(1, 1);
 
         private bool _startupInProgress;
         private bool _isClosing;
+        private bool _cs2Ready;
+        private bool _bridgeReady;
+        private bool _dllReady;
+        private int _cs2Pid;
+        private int _injectedPid;
+        private string _lastDllStatusMessage = string.Empty;
 
         public MainWindow()
         {
@@ -36,6 +44,7 @@ namespace n1ssan_launcher
             {
                 UpdateCS2Status();
                 await MonitorStartupAsync();
+                UpdateDllStatusFromSnapshot();
             };
 
             UpdateCS2Status();
@@ -58,29 +67,36 @@ namespace n1ssan_launcher
         // GAME DETECTION
         // ========================================================
 
-        private bool IsCS2Running()
-        {
-            Process[] processes =
-                Process.GetProcessesByName("cs2");
+        private static Cs2Instance? FindCs2()
+            => Cs2Process.SelectPreferred();
 
-            try
-            {
-                return processes.Length > 0;
-            }
-            finally
-            {
-                foreach (Process process in processes)
-                    process.Dispose();
-            }
-        }
+        private static bool IsCS2Running()
+            => FindCs2() != null;
 
         private void UpdateCS2Status()
         {
-            bool running = IsCS2Running();
+            Cs2Instance? game = FindCs2();
+            bool running = game != null;
+
+            if (running)
+            {
+                if (game!.Pid != _cs2Pid)
+                {
+                    // A new game process invalidates the previous injection.
+                    _cs2Pid = game.Pid;
+                    _injectedPid = 0;
+                }
+            }
+            else
+            {
+                _cs2Pid = 0;
+            }
+
+            _cs2Ready = running;
 
             UpdateCs2Status(
                 running,
-                running ? "CS2 is running" : "Waiting for game");
+                running ? $"CS2 is running (PID {_cs2Pid})" : "Waiting for game");
         }
 
         // ========================================================
@@ -92,7 +108,7 @@ namespace n1ssan_launcher
             if (_isClosing || _startupInProgress)
                 return;
 
-            bool gameRunning = IsCS2Running();
+            bool gameRunning = FindCs2() != null;
 
             if (!gameRunning)
             {
@@ -101,6 +117,10 @@ namespace n1ssan_launcher
                 {
                     _startupStateMachine.Reset();
                 }
+
+                _cs2Pid = 0;
+                _injectedPid = 0;
+                _dllReady = false;
 
                 return;
             }
@@ -167,9 +187,131 @@ namespace n1ssan_launcher
 
                 StartupDiagnostics.Write("[DOMINATE] Bridge and Obsidian Web are ready.");
 
-                // DLL integration is deliberately not reported as ready.
-                // The authorized loader and initialization handshake
-                // will be integrated in the next implementation stage.
+                // STEP 4: native runtime. DOMINATE orchestrates; the injector injects;
+                // the DLL executes and reports readiness through its status heartbeat.
+                Cs2Instance? game = FindCs2();
+
+                if (game == null)
+                {
+                    StartupDiagnostics.Write("[DOMINATE] CS2 closed before the injector stage.");
+                    _startupStateMachine.Reset();
+                    return;
+                }
+
+                _cs2Pid = game.Pid;
+                StartupDiagnostics.Write(
+                    $"[DOMINATE] CS2 selected: PID {game.Pid}, client.dll loaded={game.ClientLoaded}");
+
+                LoadoutPreflightResult loadout =
+                    LoadoutPreflight.Check(_bridgeManager.ProjectRoot);
+
+                StartupDiagnostics.Write(
+                    $"[DOMINATE] Loadout preflight: entries={loadout.EntryCount}, " +
+                    $"path={loadout.Path}, message={loadout.Message}");
+
+                if (!loadout.HasEntries)
+                {
+                    // Informational only: blocking here would also lock the destination
+                    // screen the user needs in order to configure a loadout.
+                    SetReadiness(
+                        loadout.Message + " Continuing; the native runtime decides.",
+                        false);
+                }
+
+                _startupStateMachine.TryTransition(
+                    StartupState.LoaderStarting);
+
+                InjectorResult injection;
+
+                if (_injectedPid == game.Pid)
+                {
+                    StartupDiagnostics.Write(
+                        "[DOMINATE] Injector skipped: this PID was already injected in this session.");
+
+                    injection = new InjectorResult(
+                        true, string.Empty, 0, false,
+                        "RESULT=OK status=already-loaded",
+                        string.Empty, string.Empty);
+                }
+                else
+                {
+                    StartupDiagnostics.Write("[DOMINATE] Running n1ssan injector.");
+
+                    injection = await InjectorRunner.RunAsync(
+                        game.Pid, CancellationToken.None);
+
+                    StartupDiagnostics.Write(
+                        $"[DOMINATE] Injector exit={injection.ExitCode}, " +
+                        $"timedOut={injection.TimedOut}, result={injection.ResultLine}");
+
+                    if (!string.IsNullOrWhiteSpace(injection.Output))
+                    {
+                        StartupDiagnostics.Write(
+                            "[DOMINATE] Injector stdout: " + Compact(injection.Output));
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(injection.Error))
+                    {
+                        StartupDiagnostics.Write(
+                            "[DOMINATE] Injector stderr: " + Compact(injection.Error));
+                    }
+                }
+
+                if (_isClosing)
+                    return;
+
+                if (!injection.Ok)
+                {
+                    string reason = InjectorRunner.Describe(injection);
+                    StartupDiagnostics.Write("[DOMINATE] Injector stage failed: " + reason);
+
+                    if (FindCs2() == null)
+                    {
+                        _startupStateMachine.Reset();
+                        return;
+                    }
+
+                    _startupStateMachine.TryTransition(StartupState.Failed);
+                    SetReadiness(reason, true);
+                    return;
+                }
+
+                _injectedPid = game.Pid;
+
+                _startupStateMachine.TryTransition(
+                    StartupState.DllInitializing);
+
+                (bool dllReady, string dllMessage, DllStatusSnapshot? dllSnapshot) =
+                    await WaitForDllReadyAsync(
+                        game.Pid, TimeSpan.FromSeconds(120));
+
+                if (_isClosing)
+                    return;
+
+                if (!dllReady)
+                {
+                    StartupDiagnostics.Write(
+                        "[DOMINATE] DLL readiness failed: " + dllMessage);
+
+                    if (!Cs2Process.IsAlive(game.Pid))
+                    {
+                        _startupStateMachine.Reset();
+                        return;
+                    }
+
+                    _startupStateMachine.TryTransition(StartupState.Failed);
+                    SetReadiness(
+                        "The native runtime did not become ready. " + dllMessage,
+                        true);
+                    return;
+                }
+
+                _dllReady = true;
+                StartupDiagnostics.Write(
+                    "[DOMINATE] DLL is ready: " + dllMessage +
+                    (dllSnapshot != null ? $" (build {dllSnapshot.BuildId})" : string.Empty));
+
+                _startupStateMachine.TryTransition(StartupState.Ready);
             }
             catch (Exception ex)
             {
@@ -181,6 +323,139 @@ namespace n1ssan_launcher
             finally
             {
                 _startupInProgress = false;
+            }
+        }
+
+        // ========================================================
+        // READ-ONLY DLL STATUS MONITOR
+        // ========================================================
+
+        /// <summary>
+        /// Waits for the injected DLL to publish READY or DEGRADED while it initializes.
+        /// FAILED reasons and stale/missing heartbeats are returned as actionable text.
+        /// </summary>
+        private async Task<(bool Ready, string Message, DllStatusSnapshot? Snapshot)>
+            WaitForDllReadyAsync(int pid, TimeSpan timeout)
+        {
+            DateTime deadline = DateTime.UtcNow + timeout;
+            string lastMessage = "No status record from the DLL yet.";
+
+            while (DateTime.UtcNow < deadline)
+            {
+                if (_isClosing)
+                    return (false, "Startup cancelled.", null);
+
+                if (!Cs2Process.IsAlive(pid))
+                    return (false, "CS2 closed while the DLL was initializing.", null);
+
+                if (DllStatusMonitor.TryRead(
+                        pid,
+                        out DllStatusSnapshot? snapshot,
+                        out string message,
+                        out bool isReady,
+                        out bool isFailure))
+                {
+                    lastMessage = message;
+
+                    if (!string.Equals(
+                            _lastDllStatusMessage,
+                            message,
+                            StringComparison.Ordinal))
+                    {
+                        _lastDllStatusMessage = message;
+                        StartupDiagnostics.Write("[DOMINATE] DLL status: " + message);
+                    }
+
+                    UpdateDllStatus(isReady, message);
+
+                    if (isFailure)
+                    {
+                        return (
+                            false,
+                            "DLL initialization failed: " +
+                                (snapshot?.Reason ?? "unknown error"),
+                            snapshot);
+                    }
+
+                    if (isReady)
+                        return (true, message, snapshot);
+                }
+                else
+                {
+                    lastMessage = message;
+                    UpdateDllStatus(false, message);
+                }
+
+                await Task.Delay(1000);
+            }
+
+            return (
+                false,
+                $"No READY heartbeat within {timeout.TotalSeconds:0} seconds. " +
+                    $"Last status: {lastMessage}",
+                null);
+        }
+
+        private static string Compact(string value)
+        {
+            string single = value
+                .Replace("\r", " ")
+                .Replace("\n", " ")
+                .Trim();
+
+            return single.Length <= 600
+                ? single
+                : single.Substring(0, 600) + "…";
+        }
+
+        private void UpdateDllStatusFromSnapshot()
+        {
+            StartupState state = _startupStateMachine.Current;
+            if (state != StartupState.WebReady &&
+                state != StartupState.LoaderStarting &&
+                state != StartupState.DllInitializing &&
+                state != StartupState.Ready)
+            {
+                return;
+            }
+
+            if (_cs2Pid <= 0)
+                return;
+
+            bool found = DllStatusMonitor.TryRead(
+                _cs2Pid,
+                out DllStatusSnapshot? snapshot,
+                out string message,
+                out bool isReady,
+                out bool isFailure);
+
+            _dllReady = found && isReady;
+
+            UpdateDllStatus(isReady, message);
+
+            if (!string.Equals(
+                    _lastDllStatusMessage,
+                    message,
+                    StringComparison.Ordinal))
+            {
+                _lastDllStatusMessage = message;
+                StartupDiagnostics.Write("[DOMINATE] DLL status: " + message);
+            }
+
+            if (isFailure)
+            {
+                SetReadiness(
+                    "DLL initialization failed: " +
+                        (snapshot?.Reason ?? "unknown error"),
+                    true);
+            }
+            else if (state == StartupState.Ready)
+            {
+                SetReadiness(
+                    isReady
+                        ? "n1ssan is connected and ready."
+                        : "The DLL heartbeat is no longer current.",
+                    !isReady);
             }
         }
 
@@ -202,6 +477,9 @@ namespace n1ssan_launcher
             {
                 case StartupState.WaitingForGame:
 
+                    _cs2Ready = false;
+                    _bridgeReady = false;
+                    _dllReady = false;
                     UpdateCs2Status(false, "Waiting for CS2");
                     UpdateBridgeStatus(false, "Waiting for game");
                     UpdateDllStatus(false, "Waiting for connection");
@@ -236,6 +514,7 @@ namespace n1ssan_launcher
 
                 case StartupState.BridgeReady:
 
+                    _bridgeReady = true;
                     UpdateBridgeStatus(true, "Bridge initialized");
 
                     SetReadiness(
@@ -256,21 +535,22 @@ namespace n1ssan_launcher
 
                 case StartupState.WebReady:
 
+                    _bridgeReady = true;
                     UpdateBridgeStatus(true, "Bridge + Web online");
-                    UpdateDllStatus(false, "Awaiting integration");
+                    UpdateDllStatus(false, "Awaiting native runtime");
 
                     SetReadiness(
-                        "Obsidian Web ready — http://127.0.0.1:5173/obsidian.html",
+                        "Obsidian Web ready — preparing the native runtime.",
                         false);
 
                     break;
 
                 case StartupState.LoaderStarting:
 
-                    UpdateDllStatus(false, "Preparing...");
+                    UpdateDllStatus(false, "Starting injector...");
 
                     SetReadiness(
-                        "Preparing DLL integration.",
+                        "Starting n1ssan injector.",
                         false);
 
                     break;
@@ -280,7 +560,7 @@ namespace n1ssan_launcher
                     UpdateDllStatus(false, "Initializing...");
 
                     SetReadiness(
-                        "Waiting for DLL initialization.",
+                        "Waiting for the native runtime to report READY.",
                         false);
 
                     break;
@@ -395,35 +675,116 @@ namespace n1ssan_launcher
             object sender,
             RoutedEventArgs e)
         {
-            if (_startupInProgress)
-                return;
+            SetReadiness("Verifying all DOMINATE system checks...", false);
+            UpdateCS2Status();
+            UpdateDllStatusFromSnapshot();
+            _bridgeReady = await _bridgeManager.IsHealthyAsync();
+            UpdateBridgeStatus(_bridgeReady,
+                _bridgeReady ? "Bridge connected" : "Bridge unavailable");
 
-            if (!IsCS2Running())
+            if (!_cs2Ready || !_bridgeReady || !_dllReady)
             {
-                SetReadiness(
-                    "DOMINATE unavailable — CS2 is not running.",
-                    true);
-
-                return;
-            }
-
-            if (_startupStateMachine.Current ==
-                StartupState.WebReady)
-            {
-                SetReadiness(
-                    "Bridge and Obsidian Web are ready. DLL integration is pending.",
-                    false);
-
+                string missing = !_cs2Ready ? "CS2" :
+                    !_bridgeReady ? "Bridge" : "DLL READY heartbeat";
+                SetReadiness("DOMINATE is locked. Waiting for " + missing + ".", true);
+                StartupDiagnostics.Write("[DOMINATE] Workspace selector blocked; prerequisite missing: " + missing);
                 return;
             }
 
-            if (_startupStateMachine.Current ==
-                StartupState.Failed)
-            {
-                _startupStateMachine.Reset();
-            }
+            DashboardView.Visibility = Visibility.Collapsed;
+            DestinationView.Visibility = Visibility.Visible;
+            DominateButton.Visibility = Visibility.Collapsed;
+            StartupDiagnostics.Write("[DOMINATE] All three checks are green. Workspace selector opened.");
+            SetReadiness("Choose Armory or Loadout.", false);
+        }
 
-            await MonitorStartupAsync();
+        private async void Armory_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            await OpenWorkspaceAsync(
+                "Armory",
+                "http://127.0.0.1:5173/obsidian.html");
+        }
+
+        private async void Loadout_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            await OpenWorkspaceAsync(
+                "Loadout",
+                "http://127.0.0.1:5173/loadout");
+        }
+
+        private async Task OpenWorkspaceAsync(
+            string workspaceName,
+            string url)
+        {
+            if (_isClosing)
+                return;
+
+            await _destinationLaunchGate.WaitAsync();
+
+            try
+            {
+                // Let the automatic startup pipeline finish first so
+                // navigation cannot race Bridge or Vite initialization.
+                while (_startupInProgress && !_isClosing)
+                    await Task.Delay(100);
+
+                if (_isClosing)
+                    return;
+
+                _startupInProgress = true;
+
+                try
+                {
+                    SetReadiness(
+                        $"Preparing {workspaceName}...",
+                        false);
+
+                    await _bridgeManager.EnsureRunningAsync(resetRuntimeMode: false);
+                    await _webManager.EnsureRunningAsync(
+                        _bridgeManager.ProjectRoot);
+
+                    if (_isClosing)
+                        return;
+
+                    Process? browser = Process.Start(new ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true
+                    });
+
+                    if (browser == null)
+                        throw new InvalidOperationException("The default browser could not be started.");
+                    browser.Dispose();
+
+                    StartupDiagnostics.Write(
+                        $"[DOMINATE] {workspaceName} opened in the default browser: {url}");
+                    StartupDiagnostics.Write("[DOMINATE] Closing launcher; browser session now owns Bridge/Web lifetime.");
+                    _isClosing = true;
+                    _statusTimer.Stop();
+                    Close();
+                }
+                catch (Exception ex)
+                {
+                    StartupDiagnostics.Write(
+                        $"[DOMINATE] Could not open {workspaceName}: {ex}");
+
+                    SetReadiness(
+                        $"Could not open {workspaceName}. Check the startup log.",
+                        true);
+                }
+                finally
+                {
+                    _startupInProgress = false;
+                }
+            }
+            finally
+            {
+                _destinationLaunchGate.Release();
+            }
         }
 
         // ========================================================

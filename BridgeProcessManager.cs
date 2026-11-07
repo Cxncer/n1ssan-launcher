@@ -12,6 +12,8 @@ namespace n1ssan_launcher
     {
         private const string HealthUrl =
             "http://127.0.0.1:3210/health";
+        private const string RuntimeModeResetUrl =
+            "http://127.0.0.1:3210/runtime-mode/reset";
 
         private static readonly HttpClient Client = new()
         {
@@ -22,14 +24,16 @@ namespace n1ssan_launcher
 
         public string ProjectRoot => ResolveBridgeRoot();
 
-        public async Task EnsureRunningAsync()
+        public async Task EnsureRunningAsync(bool resetRuntimeMode = true)
         {
             string bridgeRoot = ProjectRoot;
             string dataFile = ResolveDataFile(bridgeRoot);
 
             if (await IsHealthyAsync())
             {
-                EnsureDataFileExists(dataFile);
+                if (resetRuntimeMode)
+                    await ResetRuntimeModeAsync();
+                LogDataFileStatus(dataFile);
                 return;
             }
 
@@ -80,7 +84,9 @@ namespace n1ssan_launcher
 
                 if (await IsHealthyAsync())
                 {
-                    EnsureDataFileExists(dataFile);
+                    if (resetRuntimeMode)
+                        await ResetRuntimeModeAsync();
+                    LogDataFileStatus(dataFile);
                     return;
                 }
 
@@ -91,7 +97,7 @@ namespace n1ssan_launcher
                 "n1ssan Bridge did not become healthy within 15 seconds.");
         }
 
-        private static async Task<bool> IsHealthyAsync()
+        public async Task<bool> IsHealthyAsync()
         {
             try
             {
@@ -158,25 +164,37 @@ namespace n1ssan_launcher
                 : Path.GetFullPath(configured);
         }
 
-        private static void EnsureDataFileExists(string dataFile)
+        private static async Task ResetRuntimeModeAsync()
         {
+            using var response = await Client.PostAsync(
+                RuntimeModeResetUrl,
+                new StringContent("{}", System.Text.Encoding.UTF8, "application/json"));
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException(
+                    $"Bridge could not reset the runtime mode (HTTP {(int)response.StatusCode}).");
+            }
+
+            Debug.WriteLine("[Bridge] Runtime mode reset to neutral; waiting for workspace selection.");
+        }
+
+        private static void LogDataFileStatus(string dataFile)
+        {
+            // Loadout data is optional while the user is in Armory mode. DOMINATE
+            // must not prevent the Bridge from starting just because no Loadout
+            // profile has been projected yet; the native DLL validates the
+            // selected runtime mode and its own required data source.
             if (!File.Exists(dataFile))
             {
-                throw new FileNotFoundException(
-                    "n1ssan Bridge is online, but its data file was not found: " +
-                    dataFile,
-                    dataFile);
+                Debug.WriteLine(
+                    "[Bridge] Loadout data file is not present yet; continuing for Armory mode.");
+                return;
             }
 
             var info = new FileInfo(dataFile);
-            if (info.Length == 0)
-            {
-                throw new InvalidDataException(
-                    "n1ssan Bridge data file is empty: " + dataFile);
-            }
-
             Debug.WriteLine(
-                $"[Bridge] Data file verified: {dataFile} ({info.Length} bytes)");
+                $"[Bridge] Loadout data file: {dataFile} ({info.Length} bytes)");
         }
 
         private static bool IsValidBridgeRoot(string path)

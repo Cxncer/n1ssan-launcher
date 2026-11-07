@@ -64,7 +64,8 @@
             </Grid>
 
             <!-- MAIN CONTENT -->
-            <Grid Grid.Row="1"
+            <Grid x:Name="DashboardView"
+                  Grid.Row="1"
                   Margin="36,18,36,18">
 
                 <Grid.RowDefinitions>
@@ -271,6 +272,160 @@
                 </Border>
             </Grid>
 
+            <!-- DOMINATE DESTINATION SELECTOR -->
+            <Grid x:Name="DestinationView"
+                  Grid.Row="1"
+                  Margin="36,24,36,24"
+                  Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0">
+                    <TextBlock Text="DOMINATE / WORKSPACE"
+                               FontSize="10"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource SecondaryTextBrush}"/>
+                    <TextBlock Text="Choose your workspace."
+                               FontSize="27"
+                               FontWeight="SemiBold"
+                               Margin="0,9,0,0"/>
+                    <TextBlock Text="Your inventory and your equipment, together in one environment."
+                               FontSize="12"
+                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Margin="0,6,0,0"/>
+                </StackPanel>
+
+                <Grid Grid.Row="1" Margin="0,28,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0"
+                            Click="Armory_Click"
+                            Background="#1B1B1B"
+                            Foreground="{StaticResource PrimaryTextBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            Padding="24"
+                            Cursor="Hand"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Card"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="12"
+                                        Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Stretch"
+                                                      VerticalAlignment="Stretch"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Card" Property="Background" Value="#222522"/>
+                                        <Setter TargetName="Card" Property="BorderBrush" Value="#25D366"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="Card" Property="Background" Value="#292D29"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="01 / INVENTORY WORKSPACE"
+                                       FontSize="9"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource MutedTextBrush}"/>
+                            <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                                <TextBlock Text="Armory"
+                                           FontSize="29"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Text="Manage your personal inventory, item details, and collections."
+                                           FontSize="12"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,10,0,0"/>
+                            </StackPanel>
+                            <TextBlock Grid.Row="2"
+                                       Text="OPEN ARMORY  ↗"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#25D366"/>
+                        </Grid>
+                    </Button>
+
+                    <Button Grid.Column="2"
+                            Click="Loadout_Click"
+                            Background="#1B1B1B"
+                            Foreground="{StaticResource PrimaryTextBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            Padding="24"
+                            Cursor="Hand"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Card"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="12"
+                                        Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Stretch"
+                                                      VerticalAlignment="Stretch"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Card" Property="Background" Value="#222522"/>
+                                        <Setter TargetName="Card" Property="BorderBrush" Value="#25D366"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="Card" Property="Background" Value="#292D29"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="02 / EQUIPMENT WORKSPACE"
+                                       FontSize="9"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource MutedTextBrush}"/>
+                            <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                                <TextBlock Text="Loadout"
+                                           FontSize="29"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Text="Configure your Terrorist and Counter-Terrorist equipment."
+                                           FontSize="12"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,10,0,0"/>
+                            </StackPanel>
+                            <TextBlock Grid.Row="2"
+                                       Text="OPEN LOADOUT  ↗"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#25D366"/>
+                        </Grid>
+                    </Button>
+                </Grid>
+            </Grid>
+
             <!-- FOOTER -->
             <Grid Grid.Row="2"
                   Margin="36,0,36,0">
@@ -281,7 +436,8 @@
                            Foreground="{StaticResource MutedTextBrush}"
                            VerticalAlignment="Center"/>
 
-                <Button Content="DOMINATE  →"
+                <Button x:Name="DominateButton"
+                        Content="DOMINATE  →"
                         Click="Dominate_Click"
                         Width="160"
                         Height="44"
@@ -321,6 +477,7 @@
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
+
             </Grid>
 
         </Grid>
