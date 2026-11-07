@@ -179,6 +179,36 @@ namespace n1ssan_launcher
             Debug.WriteLine("[Bridge] Runtime mode reset to neutral; waiting for workspace selection.");
         }
 
+        public static async Task SelectRuntimeModeAsync(string mode)
+        {
+            if (mode != "loadout" && mode != "armory")
+                throw new ArgumentOutOfRangeException(nameof(mode), "Runtime mode must be loadout or armory.");
+
+            using var response = await Client.PostAsync(
+                "http://127.0.0.1:3210/runtime-mode",
+                new StringContent(
+                    JsonSerializer.Serialize(new { mode }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"));
+
+            string body = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException(
+                    $"Bridge could not select runtime mode '{mode}' (HTTP {(int)response.StatusCode}): {body}");
+            }
+
+            using var document = JsonDocument.Parse(body);
+            if (!document.RootElement.TryGetProperty("mode", out JsonElement selected) ||
+                !string.Equals(selected.GetString(), mode, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    $"Bridge did not confirm runtime mode '{mode}'. Response: {body}");
+            }
+
+            Debug.WriteLine($"[Bridge] Runtime mode selected: {mode}. Native injection may proceed.");
+        }
+
         private static void LogDataFileStatus(string dataFile)
         {
             // Loadout data is optional while the user is in Armory mode. DOMINATE
