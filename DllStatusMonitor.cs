@@ -15,15 +15,35 @@ namespace n1ssan_launcher
     {
         private static readonly TimeSpan HeartbeatTimeout = TimeSpan.FromSeconds(30);
 
-        private static string StatusDirectory
+        private static string[] StatusDirectories
         {
             get
             {
                 string local = Environment.GetFolderPath(
                     Environment.SpecialFolder.LocalApplicationData);
-                if (string.IsNullOrWhiteSpace(local))
-                    local = Path.GetTempPath();
-                return Path.Combine(local, "n1ssan", "status");
+                string temp = Path.GetTempPath();
+
+                var directories = new System.Collections.Generic.List<string>();
+                if (!string.IsNullOrWhiteSpace(local))
+                    directories.Add(Path.Combine(local, "n1ssan", "status"));
+
+                if (!string.IsNullOrWhiteSpace(temp))
+                {
+                    string fallback = Path.Combine(temp, "n1ssan", "status");
+                    bool alreadyAdded = false;
+                    foreach (string existing in directories)
+                    {
+                        if (string.Equals(existing, fallback, StringComparison.OrdinalIgnoreCase))
+                        {
+                            alreadyAdded = true;
+                            break;
+                        }
+                    }
+                    if (!alreadyAdded)
+                        directories.Add(fallback);
+                }
+
+                return directories.ToArray();
             }
         }
 
@@ -34,10 +54,21 @@ namespace n1ssan_launcher
             isReady = false;
             isFailure = false;
 
-            string path = Path.Combine(StatusDirectory, $"cs2-{processId}.status");
-            if (!File.Exists(path))
+            string fileName = $"cs2-{processId}.status";
+            string? path = null;
+            foreach (string directory in StatusDirectories)
             {
-                message = "Awaiting DLL status";
+                string candidate = Path.Combine(directory, fileName);
+                if (File.Exists(candidate))
+                {
+                    path = candidate;
+                    break;
+                }
+            }
+
+            if (path == null)
+            {
+                message = "Awaiting DLL status (LOCALAPPDATA/TEMP)";
                 return false;
             }
 
