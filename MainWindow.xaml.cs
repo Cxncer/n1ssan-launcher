@@ -301,8 +301,7 @@ namespace n1ssan_launcher
         private void UpdateDllStatusFromSnapshot()
         {
             StartupState state = _startupStateMachine.Current;
-            if (state != StartupState.LoaderStarting &&
-                state != StartupState.DllInitializing &&
+            if (state != StartupState.DllInitializing &&
                 state != StartupState.Ready)
             {
                 return;
@@ -726,6 +725,9 @@ namespace n1ssan_launcher
                 {
                     StartupDiagnostics.Write(
                         $"[DOMINATE] Could not open {workspaceName}: {ex}");
+
+                    if (_startupStateMachine.Current != StartupState.Ready)
+                        _startupStateMachine.TryTransition(StartupState.Failed);
 
                     SetReadiness(
                         $"Could not open {workspaceName}. Check the startup log.",
