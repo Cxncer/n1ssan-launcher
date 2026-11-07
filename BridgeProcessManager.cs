@@ -49,8 +49,8 @@ namespace n1ssan_launcher
             startInfo.ArgumentList.Add("tsx");
             startInfo.ArgumentList.Add("bridge/server.ts");
 
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
+            startInfo.RedirectStandardOutput = false;
+            startInfo.RedirectStandardError = false;
 
             StartupDiagnostics.Write(
     "[Bridge] Starting Node. Working directory: " + bridgeRoot);
@@ -61,18 +61,6 @@ namespace n1ssan_launcher
 
             StartupDiagnostics.Write(
                 "[Bridge] Process started. PID: " + _process.Id);
-
-            _process.OutputDataReceived += (_, e) =>
-            {
-                if (e.Data != null)
-                    StartupDiagnostics.Write("[Bridge stdout] " + e.Data);
-            };
-
-            _process.ErrorDataReceived += (_, e) =>
-            {
-                if (e.Data != null)
-                    StartupDiagnostics.Write("[Bridge stderr] " + e.Data);
-            };
 
             _process.Exited += (_, _) =>
             {
@@ -89,9 +77,6 @@ namespace n1ssan_launcher
             };
 
             _process.EnableRaisingEvents = true;
-
-            _process.BeginOutputReadLine();
-            _process.BeginErrorReadLine();
             DateTime deadline =
                 DateTime.UtcNow.AddSeconds(15);
 
