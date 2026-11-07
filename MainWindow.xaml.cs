@@ -425,7 +425,7 @@ namespace n1ssan_launcher
 
                     _bridgeReady = true;
                     UpdateBridgeStatus(true, "Bridge + Web online");
-                    UpdateDllStatus(false, "Awaiting native runtime");
+                    UpdateDllStatus(false, "Waiting for workspace selection");
 
                     SetReadiness(
                         "Bridge and Web are ready. Choose Loadout or Armory to select the runtime mode and inject.",
