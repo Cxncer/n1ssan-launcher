@@ -30,7 +30,16 @@ namespace n1ssan_launcher
                 if (!string.IsNullOrWhiteSpace(temp))
                 {
                     string fallback = Path.Combine(temp, "n1ssan", "status");
-                    if (!directories.Contains(fallback, StringComparer.OrdinalIgnoreCase))
+                    bool alreadyAdded = false;
+                    foreach (string existing in directories)
+                    {
+                        if (string.Equals(existing, fallback, StringComparison.OrdinalIgnoreCase))
+                        {
+                            alreadyAdded = true;
+                            break;
+                        }
+                    }
+                    if (!alreadyAdded)
                         directories.Add(fallback);
                 }
 
