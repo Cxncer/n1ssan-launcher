@@ -179,7 +179,7 @@ namespace n1ssan_launcher
             Debug.WriteLine("[Bridge] Runtime mode reset to neutral; waiting for workspace selection.");
         }
 
-        public static async Task SelectRuntimeModeAsync(string mode)
+        public async Task SelectRuntimeModeAsync(string mode)
         {
             if (mode != "loadout" && mode != "armory")
                 throw new ArgumentOutOfRangeException(nameof(mode), "Runtime mode must be loadout or armory.");
