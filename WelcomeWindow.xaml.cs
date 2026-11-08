@@ -11,27 +11,24 @@ namespace n1ssan_launcher
         private bool _starting;
         public WelcomeWindow() { InitializeComponent(); }
 
+        private void Window_SourceInitialized(object? sender, EventArgs e)
+            => WindowGlassEffects.Apply(this);
+
         private async void WelcomeWindow_Loaded(object sender, RoutedEventArgs e)
         {
             if (_starting) return;
             _starting = true;
-
-            if (AmbientBackground.Fill is LinearGradientBrush gradient)
+            if (AuroraGlow.RenderTransform is TranslateTransform transform)
             {
-                gradient.BeginAnimation(LinearGradientBrush.StartPointProperty,
-                    new PointAnimation(new Point(0, 0), new Point(1, 0.65),
-                        TimeSpan.FromSeconds(2.8))
+                transform.BeginAnimation(TranslateTransform.XProperty,
+                    new DoubleAnimation(-24, 30, TimeSpan.FromSeconds(8))
                     { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
-
-                gradient.BeginAnimation(LinearGradientBrush.EndPointProperty,
-                    new PointAnimation(new Point(1, 1), new Point(0.15, 0.25),
-                        TimeSpan.FromSeconds(2.8))
+                transform.BeginAnimation(TranslateTransform.YProperty,
+                    new DoubleAnimation(-12, 24, TimeSpan.FromSeconds(10))
                     { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
             }
-
             await Task.Delay(3000);
             if (!IsVisible) return;
-
             var dashboard = new MainWindow();
             dashboard.Show();
             Close();

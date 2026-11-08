@@ -660,6 +660,7 @@ namespace n1ssan_launcher
             DestinationView.Visibility = Visibility.Visible;
             DominateButton.Visibility = Visibility.Collapsed;
             BackToDashboardButton.Visibility = Visibility.Visible;
+            BackToDashboardButton.Visibility = Visibility.Visible;
             StartupDiagnostics.Write("[DOMINATE] CS2, Bridge, Web, and neutral DLL are ready. Workspace selector opened; mode will be selected in the running DLL.");
             SetReadiness("Choose Armory or Loadout.", false);
         }
