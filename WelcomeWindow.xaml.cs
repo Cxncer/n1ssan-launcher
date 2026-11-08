@@ -2,14 +2,24 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Animation;\nusing System.IO;\nusing System.Windows.Media.Imaging;
+using System.Windows.Media.Animation;
+using System.IO;
+using System.Windows.Media.Imaging;
 
 namespace n1ssan_launcher
 {
     public partial class WelcomeWindow : Window
     {
         private bool _starting;
-        public WelcomeWindow()\n        {\n            InitializeComponent();\n            string logoPath = Path.Combine(AppContext.BaseDirectory, "assets", "icons", "n1ssan-icon-white.png");\n            if (File.Exists(logoPath))\n                WelcomeLogo.Source = new BitmapImage(new Uri(logoPath, UriKind.Absolute));\n            else\n                StartupDiagnostics.Write("[UI] Missing welcome logo asset: " + logoPath);\n        }
+        public WelcomeWindow()
+        {
+            InitializeComponent();
+            string logoPath = Path.Combine(AppContext.BaseDirectory, "assets", "icons", "n1ssan-icon-white.png");
+            if (File.Exists(logoPath))
+                WelcomeLogo.Source = new BitmapImage(new Uri(logoPath, UriKind.Absolute));
+            else
+                StartupDiagnostics.Write("[UI] Missing welcome logo asset: " + logoPath);
+        }
 
         private void Window_SourceInitialized(object? sender, EventArgs e)
             => WindowGlassEffects.Apply(this);
