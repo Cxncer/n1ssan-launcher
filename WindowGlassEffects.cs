@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
 
 namespace n1ssan_launcher
 {
@@ -21,6 +22,18 @@ namespace n1ssan_launcher
                 if (hwnd == IntPtr.Zero) return;
                 int darkMode = 1;
                 DwmSetWindowAttribute(hwnd, 20, ref darkMode, sizeof(int));
+
+                // Apply an anti-aliased rounded alpha mask to the entire window,
+                // including child content, so no rectangular pixels leak at corners.
+                var roundedGeometry = new RectangleGeometry(
+                    new Rect(0, 0, 1, 1), 0.075, 0.075);
+                window.OpacityMask = new DrawingBrush(
+                    new GeometryDrawing(Brushes.White, null, roundedGeometry))
+                {
+                    Stretch = Stretch.Fill,
+                    AlignmentX = AlignmentX.Center,
+                    AlignmentY = AlignmentY.Center
+                };
             }
             catch
             {
