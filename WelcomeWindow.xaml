@@ -2,7 +2,7 @@
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="62" ResizeBorderThickness="0" CornerRadius="30" GlassFrameThickness="0" UseAeroCaptionButtons="False"/>
     </shell:WindowChrome.WindowChrome>
-    <Border CornerRadius="30" BorderBrush="#66FFFFFF" Background="#66101812" ClipToBounds="True">
+    <Border CornerRadius="30" BorderBrush="#00000000" BorderThickness="0" Background="#66101812" ClipToBounds="True">
         <Grid Background="#00000000" ClipToBounds="True">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>

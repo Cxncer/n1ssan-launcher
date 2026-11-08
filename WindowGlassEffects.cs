@@ -9,6 +9,7 @@ namespace n1ssan_launcher
     {
         private const int DwmwaUseImmersiveDarkMode = 20;
         private const int DwmwaWindowCornerPreference = 33;
+        private const int DwmwaBorderColor = 34;
         private const int DwmwaSystemBackdropType = 38;
         private const int DwmwaTransientWindowBackdrop = 3;
         private const int DwmwaRoundCorner = 2;
@@ -54,6 +55,12 @@ namespace n1ssan_launcher
                 int cornerPreference = DwmwaRoundCorner;
                 DwmSetWindowAttribute(hwnd, DwmwaWindowCornerPreference,
                     ref cornerPreference, sizeof(int));
+
+                // Suppress the default light DWM outline that appears as a silver rim.
+                // DWMWA_COLOR_NONE lets the rounded glass surface meet the desktop cleanly.
+                int borderColor = unchecked((int)0xFFFFFFFE);
+                DwmSetWindowAttribute(hwnd, DwmwaBorderColor,
+                    ref borderColor, sizeof(int));
 
                 int backdrop = DwmwaTransientWindowBackdrop;
                 int backdropResult = DwmSetWindowAttribute(hwnd,

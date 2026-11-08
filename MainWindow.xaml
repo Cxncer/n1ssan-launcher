@@ -34,7 +34,7 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Border CornerRadius="30" BorderBrush="#66FFFFFF" Background="#66101812" ClipToBounds="True">
+    <Border CornerRadius="30" BorderBrush="#00000000" BorderThickness="0" Background="#66101812" ClipToBounds="True">
         <Grid ClipToBounds="True">
             <Grid.RowDefinitions>
                 <RowDefinition/>
