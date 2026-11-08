@@ -25,11 +25,17 @@ namespace n1ssan_launcher
 
                 // Apply an anti-aliased rounded alpha mask to the entire window,
                 // including child content, so no rectangular pixels leak at corners.
+                double width = window.Width;
+                double height = window.Height;
                 var roundedGeometry = new RectangleGeometry(
-                    new Rect(0, 0, 1, 1), 0.075, 0.075);
+                    new Rect(0, 0, width, height), 22, 22);
                 window.OpacityMask = new DrawingBrush(
                     new GeometryDrawing(Brushes.White, null, roundedGeometry))
                 {
+                    Viewbox = new Rect(0, 0, width, height),
+                    ViewboxUnits = BrushMappingMode.Absolute,
+                    Viewport = new Rect(0, 0, 1, 1),
+                    ViewportUnits = BrushMappingMode.RelativeToBoundingBox,
                     Stretch = Stretch.Fill,
                     AlignmentX = AlignmentX.Center,
                     AlignmentY = AlignmentY.Center

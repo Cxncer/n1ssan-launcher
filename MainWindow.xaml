@@ -1,4 +1,4 @@
-<Window x:Class="n1ssan_launcher.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="CS2 INTEGRATION" Width="280" Height="480" MinWidth="280" MinHeight="480" MaxWidth="280" MaxHeight="480" WindowStartupLocation="CenterScreen" AllowsTransparency="True" Background="Transparent" SourceInitialized="Window_SourceInitialized" Foreground="{StaticResource PrimaryTextBrush}" FontFamily="Segoe UI" ResizeMode="CanMinimize" WindowStyle="None">
+<Window x:Class="n1ssan_launcher.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="CS2 INTEGRATION" Width="290" Height="480" MinWidth="290" MinHeight="480" MaxWidth="290" MaxHeight="480" WindowStartupLocation="CenterScreen" AllowsTransparency="True" Background="Transparent" SourceInitialized="Window_SourceInitialized" Foreground="{StaticResource PrimaryTextBrush}" FontFamily="Segoe UI" ResizeMode="CanMinimize" WindowStyle="None">
     <Window.Resources>
         <Style x:Key="GlassOptionButton" TargetType="Button">
             <Setter Property="Background" Value="#251C241F"/>
@@ -53,9 +53,9 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="62"/>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="66"/>
+                    <RowDefinition Height="76"/>
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0" Margin="18,0,12,0" MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                <Grid Grid.Row="0" Margin="18,0,12,0" PreviewMouseLeftButtonDown="Header_PreviewMouseLeftButtonDown">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left"><TextBlock Text="n1ssan" FontSize="13" FontWeight="Bold" Foreground="#F4F7F4" FontFamily="Barlow"/><TextBlock Text="CS2 INTEGRATION" FontSize="8" Foreground="#B7C5BB" Margin="0,1,0,0" FontFamily="Barlow"/></StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button Content="—" Width="40" Height="36" Padding="0" Style="{StaticResource WindowControlButton}" Click="Minimize_Click"/>
@@ -165,11 +165,11 @@
                 </Grid>
                 <Grid Grid.Row="2" Margin="25,0,25,0">
                     <TextBlock Text=" " FontSize="8" VerticalAlignment="Center"/>
-                    <Button x:Name="DominateButton" Content="DOMINATE" Click="Dominate_Click" MouseMove="DominateButton_MouseMove" MouseEnter="DominateButton_MouseEnter" MouseLeave="DominateButton_MouseLeave" Width="132" Height="34" HorizontalAlignment="Center" VerticalAlignment="Top" IsEnabled="False" Background="#25D366" Foreground="#07130B" FontSize="10" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                    <Button x:Name="DominateButton" Content="DOMINATE" Click="Dominate_Click" MouseMove="DominateButton_MouseMove" MouseEnter="DominateButton_MouseEnter" MouseLeave="DominateButton_MouseLeave" Width="132" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="False" Background="#101512" Foreground="#07130B" FontSize="10" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Grid ClipToBounds="True">
-                                    <Border x:Name="ButtonBackground" Background="#25D366" CornerRadius="9" Opacity="0.38"/>
+                                    <Border x:Name="ButtonBackground" Background="#101512" CornerRadius="9" BorderBrush="#657068" BorderThickness="1"/>
                                     <Border x:Name="SpecularHighlight" CornerRadius="9" Opacity="0" IsHitTestVisible="False">
                                         <Border.Background>
                                             <RadialGradientBrush x:Name="SpecularBrush" Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.78" RadiusY="1.2">
@@ -179,18 +179,25 @@
                                             </RadialGradientBrush>
                                         </Border.Background>
                                     </Border>
-                                    <Border CornerRadius="9" BorderThickness="1" BorderBrush="#70DFFFF0" IsHitTestVisible="False"/>
+                                    <Border x:Name="ButtonOutline" CornerRadius="9" BorderThickness="1" BorderBrush="#657068" IsHitTestVisible="False"/>
                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Grid>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsEnabled" Value="True">
-                                        <Setter TargetName="ButtonBackground" Property="Opacity" Value="1"/>
+                                        <Setter TargetName="ButtonBackground" Property="Background" Value="#25D366"/>
+                                        <Setter TargetName="ButtonBackground" Property="BorderBrush" Value="#65E994"/>
+                                        <Setter TargetName="ButtonOutline" Property="BorderBrush" Value="#65E994"/>
+                                        <Setter Property="Foreground" Value="#07130B"/>
                                     </Trigger>
                                     <Trigger Property="IsPressed" Value="True">
                                         <Setter TargetName="ButtonBackground" Property="Background" Value="#1EAA53"/>
                                     </Trigger>
                                     <Trigger Property="IsEnabled" Value="False">
-                                        <Setter Property="Foreground" Value="#718077"/>
+                                        <Setter TargetName="ButtonBackground" Property="Background" Value="#101512"/>
+                                        <Setter TargetName="ButtonBackground" Property="BorderBrush" Value="#657068"/>
+                                        <Setter TargetName="ButtonOutline" Property="BorderBrush" Value="#657068"/>
+                                        <Setter Property="Foreground" Value="#879189"/>
+                                        <Setter TargetName="SpecularHighlight" Property="Opacity" Value="0"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>

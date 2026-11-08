@@ -31,8 +31,15 @@ namespace n1ssan_launcher
         private void Close_Click(object sender, RoutedEventArgs e)
             => Close();
 
-        private void Header_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Header_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            DependencyObject? source = e.OriginalSource as DependencyObject;
+            while (source != null && source is not System.Windows.Controls.Button)
+                source = VisualTreeHelper.GetParent(source);
+
+            if (source is System.Windows.Controls.Button)
+                return;
+
             if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
                 DragMove();
         }

@@ -799,15 +799,19 @@ namespace n1ssan_launcher
             Close();
         }
 
-        private void Header_MouseLeftButtonDown(
+        private void Header_PreviewMouseLeftButtonDown(
             object sender,
             System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (e.LeftButton ==
-                System.Windows.Input.MouseButtonState.Pressed)
-            {
+            DependencyObject? source = e.OriginalSource as DependencyObject;
+            while (source != null && source is not System.Windows.Controls.Button)
+                source = VisualTreeHelper.GetParent(source);
+
+            if (source is System.Windows.Controls.Button)
+                return;
+
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
                 DragMove();
-            }
         }
 
         protected override void OnClosed(EventArgs e)
