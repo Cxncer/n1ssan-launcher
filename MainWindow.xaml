@@ -1,4 +1,4 @@
-<Window x:Class="n1ssan_launcher.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="CS2 INTEGRATION" Width="380" Height="520" MinWidth="380" MinHeight="520" MaxWidth="380" MaxHeight="520" WindowStartupLocation="CenterScreen" Background="#01000000" SourceInitialized="Window_SourceInitialized" Foreground="{StaticResource PrimaryTextBrush}" FontFamily="Segoe UI" ResizeMode="CanMinimize" WindowStyle="None" SizeToContent="WidthAndHeight">
+<Window x:Class="n1ssan_launcher.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="CS2 INTEGRATION" Width="380" Height="520" MinWidth="380" MinHeight="520" MaxWidth="380" MaxHeight="520" WindowStartupLocation="CenterScreen" AllowsTransparency="True" Background="Transparent" SourceInitialized="Window_SourceInitialized" Foreground="{StaticResource PrimaryTextBrush}" FontFamily="Segoe UI" ResizeMode="CanMinimize" WindowStyle="None" SizeToContent="WidthAndHeight">
     <Window.Resources>
         <Style x:Key="GlassOptionButton" TargetType="Button">
             <Setter Property="Background" Value="#251C241F"/>
@@ -55,11 +55,11 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="66"/>
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0" Margin="25,0,18,0" MouseLeftButtonDown="Header_MouseLeftButtonDown">
-                    <StackPanel VerticalAlignment="Center" Margin="0,0,0,0"/>
+                <Grid Grid.Row="0" Margin="18,0,12,0" MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left"><TextBlock Text="n1ssan" FontSize="13" FontWeight="Bold" Foreground="#F4F7F4" FontFamily="Barlow"/><TextBlock Text="CS2 INTEGRATION" FontSize="8" Foreground="#B7C5BB" Margin="0,1,0,0" FontFamily="Barlow"/></StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="—" Style="{StaticResource WindowControlButton}" Click="Minimize_Click"/>
-                        <Button Content="×" Style="{StaticResource WindowControlButton}" FontSize="19" Click="Close_Click"/>
+                        <Button Content="—" Width="40" Height="36" Padding="0" Style="{StaticResource WindowControlButton}" Click="Minimize_Click"/>
+                        <Button Content="×" Width="40" Height="36" Padding="0" Style="{StaticResource WindowControlButton}" FontSize="19" Click="Close_Click"/>
                     </StackPanel>
                 </Grid>
                 <Grid x:Name="DashboardView" Grid.Row="1" Margin="28,8,28,8">
@@ -196,10 +196,9 @@
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
-                    <Button x:Name="BackToDashboardButton" Content="← BACK" Click="BackToDashboard_Click" Width="90" Height="34" HorizontalAlignment="Right" VerticalAlignment="Center" Background="#292F2B" Foreground="#DCE5DE" FontSize="9" FontWeight="Bold" BorderThickness="1" BorderBrush="#35FFFFFF" Cursor="Hand" Visibility="Collapsed"/>
+
                 </Grid>
-                <TextBlock Text="n1ssan" FontSize="13" FontWeight="Bold" Foreground="#F4F7F4" Margin="25,29,18,16" FontFamily="Barlow"/>
-                <TextBlock Text="CS2 INTEGRATION" FontSize="8" Foreground="#B7C5BB" Margin="25,47,18,3" FontFamily="Barlow"/>
+
             </Grid>
         </Grid>
     </Border>

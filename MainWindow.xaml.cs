@@ -659,8 +659,6 @@ namespace n1ssan_launcher
             DashboardView.Visibility = Visibility.Collapsed;
             DestinationView.Visibility = Visibility.Visible;
             DominateButton.Visibility = Visibility.Collapsed;
-            BackToDashboardButton.Visibility = Visibility.Visible;
-            BackToDashboardButton.Visibility = Visibility.Visible;
             StartupDiagnostics.Write("[DOMINATE] CS2, Bridge, Web, and neutral DLL are ready. Workspace selector opened; mode will be selected in the running DLL.");
             SetReadiness("Choose Armory or Loadout.", false);
         }
@@ -694,20 +692,6 @@ namespace n1ssan_launcher
             GetSpecularHighlight()?.BeginAnimation(
                 UIElement.OpacityProperty,
                 new DoubleAnimation(0.82, 0.0, TimeSpan.FromMilliseconds(240)));
-        }
-
-        private void BackToDashboard_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            DestinationView.Visibility = Visibility.Collapsed;
-            DashboardView.Visibility = Visibility.Visible;
-            BackToDashboardButton.Visibility = Visibility.Collapsed;
-            DominateButton.Visibility = Visibility.Visible;
-            RefreshDominateButton();
-            SetReadiness(
-                "System checks remain active. Click DOMINATE to choose a mode.",
-                false);
         }
 
         private async void Armory_Click(

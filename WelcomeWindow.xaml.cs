@@ -5,6 +5,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.IO;
 using System.Windows.Media.Imaging;
+using System.Windows.Controls;
 
 namespace n1ssan_launcher
 {
@@ -24,10 +25,26 @@ namespace n1ssan_launcher
         private void Window_SourceInitialized(object? sender, EventArgs e)
             => WindowGlassEffects.Apply(this);
 
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+            => WindowState = WindowState.Minimized;
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+            => Close();
+
+        private void Header_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+                DragMove();
+        }
+
         private async void WelcomeWindow_Loaded(object sender, RoutedEventArgs e)
         {
             if (_starting) return;
             _starting = true;
+            InitializingBar.BeginAnimation(FrameworkElement.WidthProperty,
+                new DoubleAnimation(0, 42, TimeSpan.FromSeconds(3))
+                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut } });
+
             if (AuroraGlow.RenderTransform is TranslateTransform transform)
             {
                 transform.BeginAnimation(TranslateTransform.XProperty,
