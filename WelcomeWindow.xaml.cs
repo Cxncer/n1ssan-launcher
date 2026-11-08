@@ -22,6 +22,9 @@ namespace n1ssan_launcher
                 StartupDiagnostics.Write("[UI] Missing welcome logo asset: " + logoPath);
         }
 
+        private void Window_SourceInitialized(object? sender, EventArgs e)
+            => WindowGlassEffects.Apply(this);
+
         private void GlassContent_SizeChanged(object sender, SizeChangedEventArgs e)
             => UpdateRoundedClip();
 

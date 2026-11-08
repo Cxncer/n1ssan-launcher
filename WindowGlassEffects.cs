@@ -62,12 +62,15 @@ namespace n1ssan_launcher
                 DwmSetWindowAttribute(hwnd, DwmwaBorderColor,
                     ref borderColor, sizeof(int));
 
+                // WPF layered windows (AllowsTransparency=True) may report that the
+                // DWM backdrop attribute was accepted even when it is not rendered.
+                // Apply the acrylic accent directly so the desktop behind the window
+                // is genuinely blurred rather than merely covered by a translucent tint.
                 int backdrop = DwmwaTransientWindowBackdrop;
-                int backdropResult = DwmSetWindowAttribute(hwnd,
+                DwmSetWindowAttribute(hwnd,
                     DwmwaSystemBackdropType, ref backdrop, sizeof(int));
 
-                if (backdropResult != 0)
-                    ApplyLegacyAcrylic(hwnd);
+                ApplyLegacyAcrylic(hwnd);
             }
             catch
             {
@@ -81,7 +84,7 @@ namespace n1ssan_launcher
             {
                 AccentState = AccentEnableAcrylicBlurBehind,
                 AccentFlags = 2,
-                GradientColor = unchecked((int)0xB80F1B12),
+                GradientColor = unchecked((int)0xB8121810),
                 AnimationId = 0
             };
 

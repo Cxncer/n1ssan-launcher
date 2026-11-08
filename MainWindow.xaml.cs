@@ -542,6 +542,9 @@ namespace n1ssan_launcher
                 { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
         }
 
+        private void Window_SourceInitialized(object? sender, EventArgs e)
+            => WindowGlassEffects.Apply(this);
+
         private void GlassContent_SizeChanged(object sender, SizeChangedEventArgs e)
             => UpdateRoundedClip();
 
