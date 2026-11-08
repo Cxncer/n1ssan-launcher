@@ -665,9 +665,13 @@ namespace n1ssan_launcher
             SetReadiness("Choose Armory or Loadout.", false);
         }
 
+        private System.Windows.Controls.Border? GetSpecularHighlight()
+            => DominateButton.Template.FindName("SpecularHighlight", DominateButton)
+                as System.Windows.Controls.Border;
+
         private void DominateButton_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (SpecularHighlight.Background is not RadialGradientBrush brush)
+            if (GetSpecularHighlight()?.Background is not RadialGradientBrush brush)
                 return;
 
             Point position = e.GetPosition(DominateButton);
@@ -680,14 +684,14 @@ namespace n1ssan_launcher
 
         private void DominateButton_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            SpecularHighlight.BeginAnimation(
+            GetSpecularHighlight()?.BeginAnimation(
                 UIElement.OpacityProperty,
                 new DoubleAnimation(0.0, 0.82, TimeSpan.FromMilliseconds(180)));
         }
 
         private void DominateButton_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            SpecularHighlight.BeginAnimation(
+            GetSpecularHighlight()?.BeginAnimation(
                 UIElement.OpacityProperty,
                 new DoubleAnimation(0.82, 0.0, TimeSpan.FromMilliseconds(240)));
         }
