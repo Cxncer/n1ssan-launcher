@@ -9,10 +9,4 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="assets\icons\n1ssan-icon-white.png" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="assets\icons\cs2-white.png" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="assets\icons\connection-white.png" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="assets\icons\dll-white.png" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
 </Project>

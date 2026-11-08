@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Animation;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -39,8 +40,7 @@ namespace n1ssan_launcher
 
             _startupStateMachine.StateChanged += OnStartupStateChanged;
 
-            Background = new SolidColorBrush(
-                Color.FromRgb(8, 9, 9));
+            Background = Brushes.Transparent;
 
             _statusTimer.Interval = TimeSpan.FromSeconds(2);
 
