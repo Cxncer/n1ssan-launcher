@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
 
 
 namespace n1ssan_launcher
@@ -19,6 +21,38 @@ namespace n1ssan_launcher
         private readonly WebProcessManager _webManager = new();
         private readonly StartupStateMachine _startupStateMachine = new();
         private readonly System.Threading.SemaphoreSlim _destinationLaunchGate = new(1, 1);
+
+        // Add these Interop definitions inside MainWindow class
+        [StructLayout(LayoutKind.Sequential)]
+        private struct DWM_BLURBEHIND
+        {
+            public uint dwFlags;
+            [MarshalAs(UnmanagedType.Bool)] public bool fEnable;
+            public IntPtr hRgnBlur;
+            [MarshalAs(UnmanagedType.Bool)] public bool fTransitionOnMaximized;
+        }
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmEnableBlurBehindWindow(IntPtr hwnd, ref DWM_BLURBEHIND blurBehind);
+
+        private const uint DWM_BB_ENABLE = 0x00000001;
+
+        // Replace your current Window_SourceInitialized method with this:
+        private void Window_SourceInitialized(object? sender, EventArgs e)
+        {
+            IntPtr windowHandle = new WindowInteropHelper(this).Handle;
+
+            DWM_BLURBEHIND blurBehind = new DWM_BLURBEHIND
+            {
+                dwFlags = DWM_BB_ENABLE,
+                fEnable = true,
+                hRgnBlur = IntPtr.Zero,
+                fTransitionOnMaximized = false
+            };
+
+            DwmEnableBlurBehindWindow(windowHandle, ref blurBehind);
+            WindowGlassEffects.Apply(this);
+        }
 
         private bool _startupInProgress;
         private bool _isClosing;
@@ -541,9 +575,6 @@ namespace n1ssan_launcher
                 new DoubleAnimation(-10, 28, TimeSpan.FromSeconds(10))
                 { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
         }
-
-        private void Window_SourceInitialized(object? sender, EventArgs e)
-            => WindowGlassEffects.Apply(this);
 
         private void GlassContent_SizeChanged(object sender, SizeChangedEventArgs e)
             => UpdateRoundedClip();
