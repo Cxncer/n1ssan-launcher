@@ -4,5 +4,11 @@
 <Ellipse x:Name="AuroraGlow" Width="430" Height="340" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-190,-180,0,0" Fill="#7025D366" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform><Ellipse.Effect><BlurEffect Radius="95"/></Ellipse.Effect></Ellipse>
 <Ellipse Width="330" Height="330" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-160,-150" Fill="#2525D366"><Ellipse.Effect><BlurEffect Radius="90"/></Ellipse.Effect></Ellipse>
 
-<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"><Image x:Name="WelcomeLogo" Width="78" Height="78" Stretch="Uniform" Margin="0,0,0,25"/><TextBlock Text="Initializing..." FontFamily="Segoe UI" FontSize="15" FontWeight="Medium" Foreground="#E8F0EA" HorizontalAlignment="Center"/><Border Width="42" Height="2" Background="#252D28" CornerRadius="1" Margin="0,17,0,0" HorizontalAlignment="Center"><Border Width="14" Background="#25D366" CornerRadius="1" HorizontalAlignment="Left"/></Border></StackPanel>
+<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Image x:Name="WelcomeLogo" Width="78" Height="78" Stretch="Uniform"/>
+                <TextBlock Text="Initializing..." FontFamily="Segoe UI" FontSize="15" FontWeight="Medium" Foreground="#E8F0EA" HorizontalAlignment="Center"/>
+                <Border Width="42" Height="2" Background="#252D28" CornerRadius="1" Margin="0,17,0,0" HorizontalAlignment="Center">
+                    <Border Width="14" Background="#25D366" CornerRadius="1" HorizontalAlignment="Left"/>
+                </Border>
+            </StackPanel>
 </Grid></Border></Window>
