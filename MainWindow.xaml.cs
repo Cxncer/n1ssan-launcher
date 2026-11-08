@@ -628,6 +628,20 @@ namespace n1ssan_launcher
             SetReadiness("Choose Armory or Loadout.", false);
         }
 
+        private void BackToDashboard_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            DestinationView.Visibility = Visibility.Collapsed;
+            DashboardView.Visibility = Visibility.Visible;
+            BackToDashboardButton.Visibility = Visibility.Collapsed;
+            DominateButton.Visibility = Visibility.Visible;
+            RefreshDominateButton();
+            SetReadiness(
+                "System checks remain active. Click DOMINATE to choose a mode.",
+                false);
+        }
+
         private async void Armory_Click(
             object sender,
             RoutedEventArgs e)
