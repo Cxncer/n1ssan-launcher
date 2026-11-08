@@ -31,7 +31,7 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Border x:Name="RootBorder" CornerRadius="30" BorderBrush="#00000000" BorderThickness="0" Background="#66101812" ClipToBounds="True">
+    <Border x:Name="RootBorder" CornerRadius="30" BorderBrush="#00000000" BorderThickness="0" Background="#E6101812" ClipToBounds="True">
         <Grid x:Name="GlassContent" ClipToBounds="True" SizeChanged="GlassContent_SizeChanged">
             <Grid.RowDefinitions>
                 <RowDefinition/>
@@ -69,7 +69,6 @@
                     <StackPanel VerticalAlignment="Top" Height="320" Margin="0,10,0,0">
                         <StackPanel HorizontalAlignment="Center" Margin="0,0,0,16" Height="105">
                             <Image x:Name="N1ssanLogo" Width="68" Height="68" Stretch="Uniform" Margin="0,0,0,13"/>
-                            <TextBlock Text="SYSTEM DETECTION" FontSize="10" FontWeight="Bold" Foreground="#B7C5BB" HorizontalAlignment="Center"/>
                         </StackPanel>
                         <Border BorderBrush="#FF173E26" CornerRadius="11" Padding="12" Margin="0,0,0,9">
                             <Grid>
@@ -213,6 +212,7 @@
                     </Button>
 
                 </Grid>
+                <TextBlock Text="SYSTEM DETECTION" FontSize="10" FontWeight="Bold" Foreground="#B7C5BB" Margin="97,113,98,216" Grid.Row="1"/>
 
             </Grid>
         </Grid>
