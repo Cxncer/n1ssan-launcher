@@ -31,7 +31,7 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Border x:Name="RootBorder" CornerRadius="30" BorderBrush="#00000000" BorderThickness="0" Background="#66101812" ClipToBounds="True">
+    <Border x:Name="RootBorder" CornerRadius="30" BorderBrush="#00000000" BorderThickness="0" Background="#E6101812" ClipToBounds="True">
         <Grid x:Name="GlassContent" ClipToBounds="True" SizeChanged="GlassContent_SizeChanged">
             <Grid.RowDefinitions>
                 <RowDefinition/>
