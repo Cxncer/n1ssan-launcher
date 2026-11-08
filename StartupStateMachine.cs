@@ -68,6 +68,9 @@ namespace n1ssan_launcher
                 (StartupState.WebReady,
                     StartupState.LoaderStarting) => true,
 
+                (StartupState.Failed,
+                    StartupState.LoaderStarting) => true,
+
                 (StartupState.LoaderStarting,
                     StartupState.DllInitializing) => true,
 

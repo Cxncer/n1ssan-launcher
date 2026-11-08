@@ -49,28 +49,34 @@ namespace n1ssan_launcher
             startInfo.ArgumentList.Add("tsx");
             startInfo.ArgumentList.Add("bridge/server.ts");
 
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
+            startInfo.RedirectStandardOutput = false;
+            startInfo.RedirectStandardError = false;
+
+            StartupDiagnostics.Write(
+    "[Bridge] Starting Node. Working directory: " + bridgeRoot);
 
             _process = Process.Start(startInfo)
                 ?? throw new InvalidOperationException(
                     "Could not start n1ssan Bridge.");
 
-            _process.OutputDataReceived += (_, e) =>
+            StartupDiagnostics.Write(
+                "[Bridge] Process started. PID: " + _process.Id);
+
+            _process.Exited += (_, _) =>
             {
-                if (e.Data != null)
-                    Debug.WriteLine("[Bridge] " + e.Data);
+                try
+                {
+                    StartupDiagnostics.Write(
+                        $"[Bridge] PROCESS EXITED. PID: {_process.Id}, Exit code: {_process.ExitCode}");
+                }
+                catch (Exception ex)
+                {
+                    StartupDiagnostics.Write(
+                        "[Bridge] Could not read exit details: " + ex.Message);
+                }
             };
 
-            _process.ErrorDataReceived += (_, e) =>
-            {
-                if (e.Data != null)
-                    Debug.WriteLine("[Bridge Error] " + e.Data);
-            };
-
-            _process.BeginOutputReadLine();
-            _process.BeginErrorReadLine();
-
+            _process.EnableRaisingEvents = true;
             DateTime deadline =
                 DateTime.UtcNow.AddSeconds(15);
 
@@ -177,6 +183,65 @@ namespace n1ssan_launcher
             }
 
             Debug.WriteLine("[Bridge] Runtime mode reset to neutral; waiting for workspace selection.");
+        }
+
+        public async Task SelectRuntimeModeAsync(string mode)
+        {
+            if (mode != "loadout" && mode != "armory")
+                throw new ArgumentOutOfRangeException(nameof(mode), "Runtime mode must be loadout or armory.");
+
+            using var response = await Client.PostAsync(
+                "http://127.0.0.1:3210/runtime-mode",
+                new StringContent(
+                    JsonSerializer.Serialize(new { mode }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"));
+
+            string body = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException(
+                    $"Bridge could not select runtime mode '{mode}' (HTTP {(int)response.StatusCode}): {body}");
+            }
+
+            using var document = JsonDocument.Parse(body);
+            if (!document.RootElement.TryGetProperty("mode", out JsonElement selected) ||
+                !string.Equals(selected.GetString(), mode, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    $"Bridge did not confirm runtime mode '{mode}'. Response: {body}");
+            }
+
+            // The Bridge write is only the request. Wait for the injected DLL to
+            // acknowledge that it has prepared and activated the selected mode.
+            string acknowledgementPath = Path.Combine(ProjectRoot, "runtime-mode-active.json");
+            DateTime deadline = DateTime.UtcNow.AddSeconds(15);
+            while (DateTime.UtcNow < deadline)
+            {
+                try
+                {
+                    if (File.Exists(acknowledgementPath))
+                    {
+                        using var acknowledgement = JsonDocument.Parse(
+                            await File.ReadAllTextAsync(acknowledgementPath));
+                        if (acknowledgement.RootElement.TryGetProperty("mode", out JsonElement active) &&
+                            string.Equals(active.GetString(), mode, StringComparison.Ordinal))
+                        {
+                            Debug.WriteLine($"[Bridge] DLL acknowledged active runtime mode: {mode}.");
+                            return;
+                        }
+                    }
+                }
+                catch (JsonException)
+                {
+                    // The DLL may be in the middle of replacing the small ack file.
+                }
+
+                await Task.Delay(250);
+            }
+
+            throw new TimeoutException(
+                $"The DLL did not acknowledge activation of runtime mode '{mode}' within 15 seconds.");
         }
 
         private static void LogDataFileStatus(string dataFile)
