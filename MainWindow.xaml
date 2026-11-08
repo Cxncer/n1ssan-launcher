@@ -31,7 +31,13 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Border x:Name="RootBorder" CornerRadius="30" BorderBrush="#00000000" BorderThickness="0" Background="#E6101812" ClipToBounds="True">
+    <Border x:Name="RootBorder" CornerRadius="30" BorderBrush="#22FFFFFF" BorderThickness="1" ClipToBounds="True">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#B30D1F17" Offset="0.0"/>
+                <GradientStop Color="#D9050B09" Offset="1.0"/>
+            </LinearGradientBrush>
+        </Border.Background>
         <Grid x:Name="GlassContent" ClipToBounds="True" SizeChanged="GlassContent_SizeChanged">
             <Grid.RowDefinitions>
                 <RowDefinition/>
