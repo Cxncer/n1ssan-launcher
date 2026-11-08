@@ -10,9 +10,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="connection-white.png" />
+    <None Remove="cs2-white.png" />
+    <None Remove="dll-white.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="assets\icons\n1ssan-icon-white.png" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="assets\icons\cs2-white.png" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="assets\icons\connection-white.png" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="assets\icons\dll-white.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="connection-white.png" />
+    <Resource Include="cs2-white.png" />
+    <Resource Include="dll-white.png" />
   </ItemGroup>
 </Project>
