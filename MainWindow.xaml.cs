@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Windows.Media.Imaging;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -29,6 +31,8 @@ namespace n1ssan_launcher
         public MainWindow()
         {
             InitializeComponent();
+            LoadBrandAssets();
+            AnimateAurora();
             StartupDiagnostics.Write("========== DOMINATE session started ==========");
             StartupDiagnostics.Write("[DOMINATE] Log file: " + StartupDiagnostics.LogPath);
             StartupDiagnostics.Write("[DOMINATE] Base directory: " + AppContext.BaseDirectory);
@@ -509,6 +513,39 @@ namespace n1ssan_launcher
         // STATUS UI HELPERS
         // ========================================================
 
+        private void LoadBrandAssets()
+        {
+            SetImage(N1ssanLogo, "n1ssan-icon-white.png");
+            SetImage(Cs2Icon, "cs2-white.png");
+            SetImage(BridgeIcon, "connection-white.png");
+            SetImage(DllIcon, "dll-white.png");
+        }
+
+        private static void SetImage(System.Windows.Controls.Image image, string fileName)
+        {
+            string path = Path.Combine(AppContext.BaseDirectory, "assets", "icons", fileName);
+            if (File.Exists(path))
+                image.Source = new BitmapImage(new Uri(path, UriKind.Absolute));
+            else
+                StartupDiagnostics.Write("[UI] Missing icon asset: " + path);
+        }
+
+        private void AnimateAurora()
+        {
+            if (AuroraGlow.RenderTransform is not TranslateTransform transform) return;
+            transform.BeginAnimation(TranslateTransform.XProperty,
+                new DoubleAnimation(-24, 35, TimeSpan.FromSeconds(8))
+                { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
+            transform.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(-10, 28, TimeSpan.FromSeconds(10))
+                { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
+        }
+
+        private void Window_SourceInitialized(object? sender, EventArgs e)
+        {
+            WindowGlassEffects.Apply(this);
+        }
+
         private void UpdateCs2Status(
             bool isReady,
             string message)
@@ -546,7 +583,7 @@ namespace n1ssan_launcher
         }
 
         private void SetStatus(
-            System.Windows.Shapes.Path icon,
+            System.Windows.Controls.Image icon,
             System.Windows.Shapes.Ellipse circle,
             System.Windows.Controls.TextBlock label,
             bool isReady,
@@ -565,9 +602,7 @@ namespace n1ssan_launcher
                     Color.FromArgb(51, 23, 24, 25));
 
             label.Text = message;
-            icon.Fill = isReady
-                ? new SolidColorBrush(Color.FromRgb(37, 211, 102))
-                : new SolidColorBrush(Color.FromRgb(154, 166, 157));
+            icon.Opacity = isReady ? 1.0 : 0.68;
 
             label.Foreground = isReady
                 ? new SolidColorBrush(
