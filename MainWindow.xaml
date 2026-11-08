@@ -8,7 +8,7 @@
 <Ellipse Width="280" Height="280" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-150,-145" Fill="#1725D366"><Ellipse.Effect><BlurEffect Radius="80"/></Ellipse.Effect></Ellipse>
 <Grid><Grid.RowDefinitions><RowDefinition Height="62"/><RowDefinition Height="*"/><RowDefinition Height="66"/></Grid.RowDefinitions>
 <Grid Grid.Row="0" Margin="25,0,18,0" MouseLeftButtonDown="Header_MouseLeftButtonDown">
-<TextBlock Text="CS2 INTEGRATION" FontSize="11" FontWeight="Bold" Foreground="#EAF2EC" VerticalAlignment="Center"/>
+<StackPanel VerticalAlignment="Center" Margin="0,0,0,0"><TextBlock Text="n1ssan" FontSize="13" FontWeight="Bold" Foreground="#F4F7F4"/><TextBlock Text="CS2 INTEGRATION" FontSize="9" FontWeight="Bold" Foreground="#B7C5BB" Margin="0,1,0,0"/></StackPanel>
 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"><Button Content="—" Style="{StaticResource WindowControlButton}" Click="Minimize_Click"/><Button Content="×" Style="{StaticResource WindowControlButton}" FontSize="19" Click="Close_Click"/></StackPanel>
 </Grid>
 <Grid x:Name="DashboardView" Grid.Row="1" Margin="28,8,28,8"><StackPanel VerticalAlignment="Center">
@@ -26,7 +26,17 @@
 <Button Click="Loadout_Click" Style="{StaticResource GlassOptionButton}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="38"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Viewbox Width="24" Height="24" VerticalAlignment="Center"><Path Fill="#25D366" Data="M4,5 L20,5 L20,19 L4,19 Z M8,9 L16,9 M8,12 L16,12 M8,15 L13,15"/></Viewbox><StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0"><TextBlock Text="LOADOUT" FontSize="12" FontWeight="Bold" Foreground="#F3F6F3"/><TextBlock Text="Configure your equipped weapon skins." FontSize="9" Foreground="#98A39B" Margin="0,4,0,0"/></StackPanel><TextBlock Grid.Column="2" Text="→" FontSize="18" Foreground="#25D366" VerticalAlignment="Center" Margin="8,0,2,0"/></Grid></Button>
 </StackPanel></Grid>
 <Grid Grid.Row="2" Margin="25,0,25,0"><TextBlock Text=" " FontSize="8" VerticalAlignment="Center"/>
-<Button x:Name="DominateButton" Content="DOMINATE" Click="Dominate_Click" Width="132" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="False" Background="#25D366" Foreground="#07130B" FontSize="10" FontWeight="Bold" BorderThickness="0" Cursor="Hand"><Button.Template><ControlTemplate TargetType="Button"><Border x:Name="ButtonBackground" Background="#25D366" CornerRadius="8" Opacity="0.38"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsEnabled" Value="True"><Setter TargetName="ButtonBackground" Property="Opacity" Value="1"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBackground" Property="Background" Value="#42E77A"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="ButtonBackground" Property="Background" Value="#1EAA53"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="#718077"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template></Button>
+<Button x:Name="DominateButton" Content="DOMINATE" Click="Dominate_Click" MouseMove="DominateButton_MouseMove" MouseEnter="DominateButton_MouseEnter" MouseLeave="DominateButton_MouseLeave" Width="132" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="False" Background="#25D366" Foreground="#07130B" FontSize="10" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+<Button.Template><ControlTemplate TargetType="Button"><Grid ClipToBounds="True">
+<Border x:Name="ButtonBackground" Background="#25D366" CornerRadius="9" Opacity="0.38"/>
+<Border x:Name="SpecularHighlight" CornerRadius="9" Opacity="0" IsHitTestVisible="False"><Border.Background><RadialGradientBrush x:Name="SpecularBrush" Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.78" RadiusY="1.2"><GradientStop Color="#BFFFFFFF" Offset="0"/><GradientStop Color="#55FFFFFF" Offset="0.28"/><GradientStop Color="#00FFFFFF" Offset="1"/></RadialGradientBrush></Border.Background></Border>
+<Border CornerRadius="9" BorderThickness="1" BorderBrush="#70DFFFF0" IsHitTestVisible="False"/>
+<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+</Grid><ControlTemplate.Triggers>
+<Trigger Property="IsEnabled" Value="True"><Setter TargetName="ButtonBackground" Property="Opacity" Value="1"/></Trigger>
+<Trigger Property="IsPressed" Value="True"><Setter TargetName="ButtonBackground" Property="Background" Value="#1EAA53"/></Trigger>
+<Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="#718077"/></Trigger>
+</ControlTemplate.Triggers></ControlTemplate></Button.Template></Button>
 <Button x:Name="BackToDashboardButton" Content="← BACK" Click="BackToDashboard_Click" Width="90" Height="34" HorizontalAlignment="Right" VerticalAlignment="Center" Background="#292F2B" Foreground="#DCE5DE" FontSize="9" FontWeight="Bold" BorderThickness="1" BorderBrush="#35FFFFFF" Cursor="Hand" Visibility="Collapsed"/>
 </Grid>
 </Grid></Grid></Border></Window>

@@ -22,7 +22,7 @@ namespace n1ssan_launcher
             {
                 var hwnd = new WindowInteropHelper(window).Handle;
                 if (hwnd == IntPtr.Zero) return;
-                int darkMode = 1, rounded = 2, backdrop = 3;
+                int darkMode = 1, backdrop = 3;
                 DwmSetWindowAttribute(hwnd, 20, ref darkMode, sizeof(int));
                 DwmSetWindowAttribute(hwnd, 33, ref rounded, sizeof(int));
                 DwmSetWindowAttribute(hwnd, 38, ref backdrop, sizeof(int));
