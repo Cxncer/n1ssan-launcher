@@ -24,7 +24,6 @@ namespace n1ssan_launcher
                 if (hwnd == IntPtr.Zero) return;
                 int darkMode = 1, backdrop = 3;
                 DwmSetWindowAttribute(hwnd, 20, ref darkMode, sizeof(int));
-                DwmSetWindowAttribute(hwnd, 33, ref rounded, sizeof(int));
                 DwmSetWindowAttribute(hwnd, 38, ref backdrop, sizeof(int));
                 var margins = new Margins { Left = -1, Right = -1, Top = -1, Bottom = -1 };
                 DwmExtendFrameIntoClientArea(hwnd, ref margins);
