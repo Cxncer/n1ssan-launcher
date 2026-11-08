@@ -31,8 +31,12 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Border CornerRadius="25" BorderBrush="#55FFFFFF" BorderThickness="1" Background="#E8101712" ClipToBounds="True">
+    <Border CornerRadius="25" BorderBrush="#55FFFFFF" Background="#E8101712" ClipToBounds="True">
         <Grid ClipToBounds="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="227*"/>
+                <RowDefinition Height="12*"/>
+            </Grid.RowDefinitions>
             <Grid.Background>
                 <SolidColorBrush Color="#E80B100D"/>
             </Grid.Background>
@@ -44,12 +48,12 @@
                     <BlurEffect Radius="85"/>
                 </Ellipse.Effect>
             </Ellipse>
-            <Ellipse Width="280" Height="280" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-150,-145" Fill="#1725D366">
+            <Ellipse Width="280" Height="280" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-150,-145" Fill="#1725D366" Grid.RowSpan="2">
                 <Ellipse.Effect>
                     <BlurEffect Radius="80"/>
                 </Ellipse.Effect>
             </Ellipse>
-            <Grid>
+            <Grid Grid.RowSpan="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="62"/>
                     <RowDefinition Height="*"/>
@@ -79,7 +83,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <Border Width="36" Height="36" CornerRadius="9" Background="#243D3029" VerticalAlignment="Center">
-                                    <Image x:Name="Cs2Icon" Stretch="Uniform" Source="/cs2-white.png" Margin="4,3,4,3"/>
+                                    <Image x:Name="Cs2Icon" Stretch="Uniform" Source="/cs2-white.png" Margin="6,5,6,5"/>
                                 </Border>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="9,0,0,0">
                                     <TextBlock Text="Counter-Strike 2" FontSize="12" FontWeight="SemiBold" Foreground="#F0F3F0"/>
