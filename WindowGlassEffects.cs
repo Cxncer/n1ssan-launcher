@@ -8,23 +8,73 @@ namespace n1ssan_launcher
 {
     internal static class WindowGlassEffects
     {
+        private const int WcaAccentPolicy = 19;
+        private const int AccentEnableAcrylicBlurBehind = 4;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct AccentPolicy
+        {
+            public int AccentState;
+            public int AccentFlags;
+            public int GradientColor;
+            public int AnimationId;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WindowCompositionAttributeData
+        {
+            public int Attribute;
+            public IntPtr Data;
+            public int SizeOfData;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern int SetWindowCompositionAttribute(
+            IntPtr hwnd, ref WindowCompositionAttributeData data);
+
         [DllImport("dwmapi.dll")]
-        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+        private static extern int DwmSetWindowAttribute(
+            IntPtr hwnd, int attribute, ref int value, int size);
 
         public static void Apply(Window window)
         {
             try
             {
-                // Layered WPF windows provide transparency themselves. Do not extend
-                // the DWM frame over the client area: doing so caused stale opacity
-                // until the window was minimized/restored.
                 IntPtr hwnd = new WindowInteropHelper(window).Handle;
                 if (hwnd == IntPtr.Zero) return;
+
                 int darkMode = 1;
                 DwmSetWindowAttribute(hwnd, 20, ref darkMode, sizeof(int));
 
-                // Apply an anti-aliased rounded alpha mask to the entire window,
-                // including child content, so no rectangular pixels leak at corners.
+                // Windows acrylic backdrop: blurred desktop/application content
+                // beneath the dark green tint, with the animated WPF aurora above it.
+                // GradientColor uses AABBGGRR; 0xC80F1B12 is a dark green 78% tint.
+                var accent = new AccentPolicy
+                {
+                    AccentState = AccentEnableAcrylicBlurBehind,
+                    AccentFlags = 2,
+                    GradientColor = unchecked((int)0xC80F1B12),
+                    AnimationId = 0
+                };
+
+                IntPtr accentPtr = Marshal.AllocHGlobal(Marshal.SizeOf<AccentPolicy>());
+                try
+                {
+                    Marshal.StructureToPtr(accent, accentPtr, false);
+                    var data = new WindowCompositionAttributeData
+                    {
+                        Attribute = WcaAccentPolicy,
+                        Data = accentPtr,
+                        SizeOfData = Marshal.SizeOf<AccentPolicy>()
+                    };
+                    SetWindowCompositionAttribute(hwnd, ref data);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(accentPtr);
+                }
+
+                // Keep the rounded alpha silhouette independent of the backdrop.
                 double width = window.Width;
                 double height = window.Height;
                 var roundedGeometry = new RectangleGeometry(
@@ -43,7 +93,7 @@ namespace n1ssan_launcher
             }
             catch
             {
-                // Glass decoration is optional; it must never block startup.
+                // Optional native glass effects must never block launcher startup.
             }
         }
     }

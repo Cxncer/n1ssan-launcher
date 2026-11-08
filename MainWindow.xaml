@@ -31,16 +31,16 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Border CornerRadius="25" BorderBrush="#55FFFFFF" Background="#E8101712" ClipToBounds="True">
+    <Border CornerRadius="25" BorderBrush="#55FFFFFF" Background="#C8101712" ClipToBounds="True">
         <Grid ClipToBounds="True">
             <Grid.RowDefinitions>
                 <RowDefinition Height="227*"/>
                 <RowDefinition Height="12*"/>
             </Grid.RowDefinitions>
             <Grid.Background>
-                <SolidColorBrush Color="#E80B100D"/>
+                <SolidColorBrush Color="#C80B100D"/>
             </Grid.Background>
-            <Ellipse x:Name="AuroraGlow" Width="340" Height="340" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-190,-175,0,0" Fill="#3525D366" RenderTransformOrigin="0.5,0.5">
+            <Ellipse x:Name="AuroraGlow" Width="340" Height="340" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-190,-175,0,0" Fill="#7025D366" RenderTransformOrigin="0.5,0.5">
                 <Ellipse.RenderTransform>
                     <TranslateTransform/>
                 </Ellipse.RenderTransform>
@@ -48,7 +48,7 @@
                     <BlurEffect Radius="85"/>
                 </Ellipse.Effect>
             </Ellipse>
-            <Ellipse Width="280" Height="280" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-150,-145" Fill="#1725D366" Grid.RowSpan="2">
+            <Ellipse Width="280" Height="280" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-150,-145" Fill="#4025D366" Grid.RowSpan="2">
                 <Ellipse.Effect>
                     <BlurEffect Radius="80"/>
                 </Ellipse.Effect>
@@ -59,7 +59,7 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="76"/>
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0" Margin="18,0,12,0" PreviewMouseLeftButtonDown="Header_PreviewMouseLeftButtonDown">
+                <Grid Grid.Row="0" Margin="18,0,12,0" Background="Transparent" PreviewMouseLeftButtonDown="Header_PreviewMouseLeftButtonDown">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left">
                         <TextBlock Text="n1ssan" FontSize="13" FontWeight="Bold" Foreground="#F4F7F4" FontFamily="Barlow"/>
                         <TextBlock Text="CS2 INTEGRATION" FontSize="8" Foreground="#B7C5BB" Margin="0,1,0,0" FontFamily="Barlow"/>
@@ -208,7 +208,7 @@
                                         <Setter TargetName="ButtonBackground" Property="Background" Value="#101512"/>
                                         <Setter TargetName="ButtonBackground" Property="BorderBrush" Value="#657068"/>
                                         <Setter TargetName="ButtonOutline" Property="BorderBrush" Value="#657068"/>
-                                        <Setter Property="Foreground" Value="#879189"/>
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
                                         <Setter TargetName="SpecularHighlight" Property="Opacity" Value="0"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
