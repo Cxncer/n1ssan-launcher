@@ -45,6 +45,7 @@ namespace n1ssan_launcher
                 UpdateCS2Status();
                 await MonitorStartupAsync();
                 UpdateDllStatusFromSnapshot();
+                RefreshDominateButton();
             };
 
             UpdateCS2Status();
@@ -500,6 +501,8 @@ namespace n1ssan_launcher
 
                     break;
             }
+
+            RefreshDominateButton();
         }
 
         // ========================================================
@@ -511,6 +514,7 @@ namespace n1ssan_launcher
             string message)
         {
             SetStatus(
+                Cs2Icon,
                 Cs2StatusCircle,
                 Cs2StatusText,
                 isReady,
@@ -522,6 +526,7 @@ namespace n1ssan_launcher
             string message)
         {
             SetStatus(
+                BridgeIcon,
                 BridgeStatusCircle,
                 BridgeStatusText,
                 isReady,
@@ -533,6 +538,7 @@ namespace n1ssan_launcher
             string message)
         {
             SetStatus(
+                DllIcon,
                 DllStatusCircle,
                 DllStatusText,
                 isReady,
@@ -540,6 +546,7 @@ namespace n1ssan_launcher
         }
 
         private void SetStatus(
+            System.Windows.Shapes.Path icon,
             System.Windows.Shapes.Ellipse circle,
             System.Windows.Controls.TextBlock label,
             bool isReady,
@@ -558,12 +565,22 @@ namespace n1ssan_launcher
                     Color.FromArgb(51, 23, 24, 25));
 
             label.Text = message;
+            icon.Fill = isReady
+                ? new SolidColorBrush(Color.FromRgb(37, 211, 102))
+                : new SolidColorBrush(Color.FromRgb(154, 166, 157));
 
             label.Foreground = isReady
                 ? new SolidColorBrush(
                     Color.FromRgb(30, 215, 96))
                 : new SolidColorBrush(
                     Color.FromRgb(146, 151, 144));
+        }
+
+        private void RefreshDominateButton()
+        {
+            DominateButton.IsEnabled =
+                _startupStateMachine.Current == StartupState.Ready &&
+                _cs2Ready && _bridgeReady && _dllReady;
         }
 
         private void SetReadiness(

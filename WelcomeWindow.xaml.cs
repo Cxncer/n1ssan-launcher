@@ -9,61 +9,31 @@ namespace n1ssan_launcher
     public partial class WelcomeWindow : Window
     {
         private bool _starting;
+        public WelcomeWindow() { InitializeComponent(); }
 
-        public WelcomeWindow()
+        private async void WelcomeWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            InitializeComponent();
-        }
-
-        private async void WelcomeWindow_Loaded(
-            object sender,
-            RoutedEventArgs e)
-        {
-            if (_starting)
-                return;
-
+            if (_starting) return;
             _starting = true;
 
-            // One complete revolution in 3 seconds.
-            var rotation = new DoubleAnimation
+            if (AmbientBackground.Fill is LinearGradientBrush gradient)
             {
-                From = 0,
-                To = 360,
-                Duration = TimeSpan.FromSeconds(3),
-                RepeatBehavior = new RepeatBehavior(1),
-                FillBehavior = FillBehavior.HoldEnd
-            };
+                gradient.BeginAnimation(LinearGradientBrush.StartPointProperty,
+                    new PointAnimation(new Point(0, 0), new Point(1, 0.65),
+                        TimeSpan.FromSeconds(2.8))
+                    { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
 
-            ArcRotation.BeginAnimation(
-                RotateTransform.AngleProperty,
-                rotation);
+                gradient.BeginAnimation(LinearGradientBrush.EndPointProperty,
+                    new PointAnimation(new Point(1, 1), new Point(0.15, 0.25),
+                        TimeSpan.FromSeconds(2.8))
+                    { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
+            }
 
             await Task.Delay(3000);
+            if (!IsVisible) return;
 
-            // Do not launch the dashboard if the welcome
-            // window was closed during initialization.
-            if (!IsVisible)
-                return;
-
-            // MainWindow starts its own single monitoring pipeline
-            // from its constructor; do not start a second loop here.
             var dashboard = new MainWindow();
             dashboard.Show();
-
-            Close();
-        }
-
-        private void Minimize_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            WindowState = WindowState.Minimized;
-        }
-
-        private void Close_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
             Close();
         }
     }
