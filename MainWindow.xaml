@@ -61,8 +61,8 @@
                         <TextBlock Text="CS2 INTEGRATION" FontSize="8" Foreground="#B7C5BB" Margin="0,1,0,0" FontFamily="Barlow"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="—" Width="40" Height="36" Padding="0" Style="{StaticResource WindowControlButton}" Click="Minimize_Click" shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
-                        <Button Content="×" Width="40" Height="36" Padding="0" Style="{StaticResource WindowControlButton}" FontSize="19" Click="Close_Click" shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+                        <Button Content="—" Width="40" Height="36" Padding="0" Style="{StaticResource WindowControlButton}" Click="Minimize_Click"/>
+                        <Button Content="×" Width="40" Height="36" Padding="0" Style="{StaticResource WindowControlButton}" FontSize="19" Click="Close_Click"/>
                     </StackPanel>
                 </Grid>
                 <Grid x:Name="DashboardView" Grid.Row="1" Margin="28,0,28,63" Grid.RowSpan="2">
