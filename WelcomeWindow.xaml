@@ -1,6 +1,6 @@
 <Window x:Class="n1ssan_launcher.WelcomeWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="CS2 INTEGRATION" Loaded="WelcomeWindow_Loaded" Width="290" Height="480" WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="CanMinimize" AllowsTransparency="True" Background="Transparent" SourceInitialized="Window_SourceInitialized">
-    <Border CornerRadius="27" BorderBrush="#66FFFFFF" Background="#C8101712" ClipToBounds="True">
-        <Grid Background="#C80B100D" ClipToBounds="True">
+    <Border CornerRadius="27" BorderBrush="#66FFFFFF" Background="#00000000" ClipToBounds="True">
+        <Grid Background="#00000000" ClipToBounds="True">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>

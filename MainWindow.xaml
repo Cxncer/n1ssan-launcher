@@ -31,14 +31,14 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Border CornerRadius="25" BorderBrush="#55FFFFFF" Background="#C8101712" ClipToBounds="True">
+    <Border CornerRadius="25" BorderBrush="#66FFFFFF" Background="#00000000" ClipToBounds="True">
         <Grid ClipToBounds="True">
             <Grid.RowDefinitions>
                 <RowDefinition Height="227*"/>
                 <RowDefinition Height="12*"/>
             </Grid.RowDefinitions>
             <Grid.Background>
-                <SolidColorBrush Color="#C80B100D"/>
+                <SolidColorBrush Color="#850B100D"/>
             </Grid.Background>
             <Ellipse x:Name="AuroraGlow" Width="340" Height="340" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-190,-175,0,0" Fill="#7025D366" RenderTransformOrigin="0.5,0.5">
                 <Ellipse.RenderTransform>
