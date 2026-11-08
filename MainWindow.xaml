@@ -56,14 +56,17 @@
                     <RowDefinition Height="76"/>
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0" Margin="18,0,12,0" PreviewMouseLeftButtonDown="Header_PreviewMouseLeftButtonDown">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left"><TextBlock Text="n1ssan" FontSize="13" FontWeight="Bold" Foreground="#F4F7F4" FontFamily="Barlow"/><TextBlock Text="CS2 INTEGRATION" FontSize="8" Foreground="#B7C5BB" Margin="0,1,0,0" FontFamily="Barlow"/></StackPanel>
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left">
+                        <TextBlock Text="n1ssan" FontSize="13" FontWeight="Bold" Foreground="#F4F7F4" FontFamily="Barlow"/>
+                        <TextBlock Text="CS2 INTEGRATION" FontSize="8" Foreground="#B7C5BB" Margin="0,1,0,0" FontFamily="Barlow"/>
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button Content="—" Width="40" Height="36" Padding="0" Style="{StaticResource WindowControlButton}" Click="Minimize_Click"/>
                         <Button Content="×" Width="40" Height="36" Padding="0" Style="{StaticResource WindowControlButton}" FontSize="19" Click="Close_Click"/>
                     </StackPanel>
                 </Grid>
-                <Grid x:Name="DashboardView" Grid.Row="1" Margin="28,8,28,8">
-                    <StackPanel VerticalAlignment="Center">
+                <Grid x:Name="DashboardView" Grid.Row="1" Margin="28,8,28,63" Grid.RowSpan="2">
+                    <StackPanel VerticalAlignment="Top">
                         <StackPanel HorizontalAlignment="Center" Margin="0,0,0,16">
                             <Image x:Name="N1ssanLogo" Width="68" Height="68" Stretch="Uniform" Margin="0,0,0,13"/>
                             <TextBlock Text="SYSTEM DETECTION" FontSize="10" FontWeight="Bold" Foreground="#B7C5BB" HorizontalAlignment="Center"/>
@@ -119,7 +122,7 @@
                                 <Ellipse x:Name="DllStatusCircle" Grid.Column="2" Width="8" Height="8" Stroke="#929D95" StrokeThickness="1.3" Fill="#33171819" VerticalAlignment="Center" Margin="8,0,2,0"/>
                             </Grid>
                         </Border>
-                        <TextBlock x:Name="SystemReadinessText" Text="Waiting for Counter-Strike 2." FontSize="9" Foreground="#8D9991" TextAlignment="Center" TextWrapping="Wrap" Margin="4,17,4,0"/>
+                        <TextBlock x:Name="SystemReadinessText" Text="Waiting for Counter-Strike 2." FontSize="9" Foreground="#8D9991" TextAlignment="Center" TextWrapping="Wrap" Margin="4,17,4,0" Height="13"/>
                     </StackPanel>
                 </Grid>
                 <Grid x:Name="DestinationView" Grid.Row="1" Margin="28,12,28,12" Visibility="Collapsed">
@@ -163,9 +166,14 @@
                         </Button>
                     </StackPanel>
                 </Grid>
-                <Grid Grid.Row="2" Margin="25,0,25,0">
-                    <TextBlock Text=" " FontSize="8" VerticalAlignment="Center"/>
-                    <Button x:Name="DominateButton" Content="DOMINATE" Click="Dominate_Click" MouseMove="DominateButton_MouseMove" MouseEnter="DominateButton_MouseEnter" MouseLeave="DominateButton_MouseLeave" Width="132" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="False" Background="#101512" Foreground="#07130B" FontSize="10" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                <Grid Grid.Row="2" Margin="25,38,25,0" Height="38" VerticalAlignment="Top">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="66*"/>
+                        <ColumnDefinition Width="6*"/>
+                        <ColumnDefinition Width="47*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text=" " FontSize="8" VerticalAlignment="Top" Margin="0,19,0,0" Grid.ColumnSpan="3"/>
+                    <Button x:Name="DominateButton" Content="DOMINATE" Click="Dominate_Click" MouseMove="DominateButton_MouseMove" MouseEnter="DominateButton_MouseEnter" MouseLeave="DominateButton_MouseLeave" Width="132" Height="34" HorizontalAlignment="Left" VerticalAlignment="Top" IsEnabled="False" Background="#101512" Foreground="#07130B" FontSize="10" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Margin="53,-15,0,0" Grid.ColumnSpan="3">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Grid ClipToBounds="True">
