@@ -62,7 +62,8 @@ namespace n1ssan_launcher
                     FileName = "node",
                     WorkingDirectory = projectRoot,
                     UseShellExecute = false,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
                 };
 
                 startInfo.ArgumentList.Add(viteEntry);
