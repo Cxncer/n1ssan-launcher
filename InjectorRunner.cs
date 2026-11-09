@@ -91,6 +91,7 @@ namespace n1ssan_launcher
                 WorkingDirectory = Path.GetDirectoryName(executable)!,
                 UseShellExecute = false,
                 CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };
