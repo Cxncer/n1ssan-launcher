@@ -42,15 +42,15 @@ namespace n1ssan_launcher
                 FileName = "node",
                 WorkingDirectory = bridgeRoot,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             };
 
             startInfo.ArgumentList.Add("--import");
             startInfo.ArgumentList.Add("tsx");
             startInfo.ArgumentList.Add("bridge/server.ts");
-
-            startInfo.RedirectStandardOutput = false;
-            startInfo.RedirectStandardError = false;
 
             StartupDiagnostics.Write(
     "[Bridge] Starting Node. Working directory: " + bridgeRoot);
@@ -61,6 +61,19 @@ namespace n1ssan_launcher
 
             StartupDiagnostics.Write(
                 "[Bridge] Process started. PID: " + _process.Id);
+
+            _process.OutputDataReceived += (_, e) =>
+            {
+                if (e.Data != null)
+                    StartupDiagnostics.Write("[Bridge stdout] " + e.Data);
+            };
+            _process.ErrorDataReceived += (_, e) =>
+            {
+                if (e.Data != null)
+                    StartupDiagnostics.Write("[Bridge stderr] " + e.Data);
+            };
+            _process.BeginOutputReadLine();
+            _process.BeginErrorReadLine();
 
             _process.Exited += (_, _) =>
             {
