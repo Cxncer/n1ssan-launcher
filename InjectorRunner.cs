@@ -39,10 +39,9 @@ namespace n1ssan_launcher
             if (!string.IsNullOrWhiteSpace(configured) && File.Exists(configured))
                 return Path.GetFullPath(configured);
 
-            string besideLauncher = Path.Combine(AppContext.BaseDirectory, InjectorExeName);
-            if (File.Exists(besideLauncher))
-                return Path.GetFullPath(besideLauncher);
-
+            // Prefer the maintained v2 project build over any copied executable
+            // beside the launcher. A stale adjacent injector can otherwise take
+            // precedence and reopen a console even after v2 has been rebuilt.
             DirectoryInfo? directory;
             try
             {
@@ -62,6 +61,12 @@ namespace n1ssan_launcher
                         return Path.GetFullPath(candidate);
                 }
             }
+
+            // A packaged v2 executable may be deployed beside the launcher.
+            // Use it only after checking the maintained sibling-project build.
+            string besideLauncher = Path.Combine(AppContext.BaseDirectory, InjectorExeName);
+            if (File.Exists(besideLauncher))
+                return Path.GetFullPath(besideLauncher);
 
             return null;
         }
