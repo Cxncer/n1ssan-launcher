@@ -558,11 +558,18 @@ namespace n1ssan_launcher
 
         private static void SetImage(System.Windows.Controls.Image image, string fileName)
         {
-            string path = Path.Combine(AppContext.BaseDirectory, "assets", "icons", fileName);
-            if (File.Exists(path))
+            string baseDirectory = AppContext.BaseDirectory;
+            string[] candidates =
+            {
+                Path.Combine(baseDirectory, "assets", "icons", fileName),
+                Path.Combine(baseDirectory, "launcher", "assets", "icons", fileName)
+            };
+
+            string? path = Array.Find(candidates, File.Exists);
+            if (path != null)
                 image.Source = new BitmapImage(new Uri(path, UriKind.Absolute));
             else
-                StartupDiagnostics.Write("[UI] Missing icon asset: " + path);
+                StartupDiagnostics.Write("[UI] Missing icon asset. Checked: " + string.Join("; ", candidates));
         }
 
         private void AnimateAurora()
