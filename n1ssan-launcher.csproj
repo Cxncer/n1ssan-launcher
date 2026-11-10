@@ -28,5 +28,6 @@
     <Resource Include="cs2-white.png" />
     <Resource Include="dll-white.png" />
     <Resource Include="assets\icons\n1ssan-black.ico" />
+    <Resource Include="assets\\icons\\n1ssan-black.png" />
   </ItemGroup>
 </Project>
