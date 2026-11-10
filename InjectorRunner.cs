@@ -40,8 +40,7 @@ namespace n1ssan_launcher
                 return Path.GetFullPath(configured);
 
             // Packaged release layout takes priority over development builds.
-            string packageRoot = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, ".."));
+            string packageRoot = ResolvePackageRoot();
 
             string packagedInjector = Path.Combine(packageRoot, "injector", InjectorExeName);
             if (File.Exists(Path.Combine(packageRoot, "runtime", "node.exe")) &&
@@ -84,6 +83,26 @@ namespace n1ssan_launcher
             return null;
         }
 
+        private static string ResolvePackageRoot()
+        {
+            string baseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+            string parentDirectory = Path.GetFullPath(Path.Combine(baseDirectory, ".."));
+
+            foreach (string candidate in new[] { baseDirectory, parentDirectory })
+            {
+                if (File.Exists(Path.Combine(candidate, "runtime", "node.exe")) &&
+                    File.Exists(Path.Combine(candidate, "runtime", "bridge", "server.js")) &&
+                    File.Exists(Path.Combine(candidate, "web", "dist", "index.html")) &&
+                    File.Exists(Path.Combine(candidate, "dll", "n1ssan-dll.dll")))
+                {
+                    return candidate;
+                }
+            }
+
+            // Preserve the existing development-build search behavior.
+            return parentDirectory;
+        }
+
         private static IEnumerable<string> CandidateLayouts()
         {
             // Only use the maintained v2 repository. Falling back to the legacy
@@ -114,8 +133,7 @@ namespace n1ssan_launcher
                 RedirectStandardError = true,
             };
 
-            string packageRootForDll = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, ".."));
+            string packageRootForDll = ResolvePackageRoot();
 
             string packagedDll = Path.Combine(packageRootForDll, "dll", "n1ssan-dll.dll");
 
