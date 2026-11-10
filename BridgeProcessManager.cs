@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -22,12 +22,59 @@ namespace n1ssan_launcher
 
         private Process? _process;
 
-        public string ProjectRoot => ResolveBridgeRoot();
+        public bool IsPackagedRelease =>
+            TryResolvePackageRoot(out _);
+
+        public string PackageRoot =>
+            TryResolvePackageRoot(out string root)
+                ? root
+                : throw new DirectoryNotFoundException("Packaged DOMINATE runtime was not found.");
+
+        public string ArmoryUrl =>
+            IsPackagedRelease
+                ? "http://127.0.0.1:3210/obsidian.html"
+                : "http://127.0.0.1:5173/obsidian.html";
+
+        public string LoadoutUrl =>
+            IsPackagedRelease
+                ? "http://127.0.0.1:3210/loadout"
+                : "http://127.0.0.1:5173/loadout";
+        public string ProductionDataDirectory =>
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "n1ssan");
+
+        public string ProjectRoot =>
+            IsPackagedRelease ? PackageRoot : ResolveBridgeRoot();
+
+        private bool TryResolvePackageRoot(out string root)
+        {
+            string candidate = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, ".."));
+
+            bool valid =
+                File.Exists(Path.Combine(candidate, "runtime", "node.exe")) &&
+                File.Exists(Path.Combine(candidate, "runtime", "bridge", "server.js")) &&
+                File.Exists(Path.Combine(candidate, "web", "dist", "index.html"));
+
+            root = valid ? candidate : string.Empty;
+            return valid;
+        }
 
         public async Task EnsureRunningAsync(bool resetRuntimeMode = true)
         {
-            string bridgeRoot = ProjectRoot;
-            string dataFile = ResolveDataFile(bridgeRoot);
+            bool packaged = IsPackagedRelease;
+            string packageRoot = packaged ? PackageRoot : string.Empty;
+            string bridgeRoot = packaged
+                ? Path.Combine(packageRoot, "runtime")
+                : ProjectRoot;
+
+            string dataFile = packaged
+                ? Path.Combine(ProductionDataDirectory, "n1ssan-data.json")
+                : ResolveDataFile(bridgeRoot);
+
+            if (packaged)
+                Directory.CreateDirectory(ProductionDataDirectory);
 
             if (await IsHealthyAsync())
             {
@@ -39,7 +86,9 @@ namespace n1ssan_launcher
 
             var startInfo = new ProcessStartInfo
             {
-                FileName = "node",
+                FileName = packaged
+                    ? Path.Combine(bridgeRoot, "node.exe")
+                    : "node",
                 WorkingDirectory = bridgeRoot,
                 UseShellExecute = false,
                 CreateNoWindow = true,
@@ -48,9 +97,19 @@ namespace n1ssan_launcher
                 RedirectStandardError = true
             };
 
-            startInfo.ArgumentList.Add("--import");
-            startInfo.ArgumentList.Add("tsx");
-            startInfo.ArgumentList.Add("bridge/server.ts");
+            if (packaged)
+            {
+                startInfo.ArgumentList.Add(Path.Combine("bridge", "server.js"));
+                startInfo.Environment["N1SSAN_DATA_DIR"] = ProductionDataDirectory;
+                startInfo.Environment["N1SSAN_DATA_FILE"] = dataFile;
+                startInfo.Environment["N1SSAN_WEB_DIST"] = Path.Combine(packageRoot, "web", "dist");
+            }
+            else
+            {
+                startInfo.ArgumentList.Add("--import");
+                startInfo.ArgumentList.Add("tsx");
+                startInfo.ArgumentList.Add("bridge/server.ts");
+            }
 
             StartupDiagnostics.Write(
     "[Bridge] Starting Node. Working directory: " + bridgeRoot);
@@ -227,7 +286,9 @@ namespace n1ssan_launcher
 
             // The Bridge write is only the request. Wait for the injected DLL to
             // acknowledge that it has prepared and activated the selected mode.
-            string acknowledgementPath = Path.Combine(ProjectRoot, "runtime-mode-active.json");
+            string acknowledgementPath = Path.Combine(
+                IsPackagedRelease ? ProductionDataDirectory : ProjectRoot,
+                "runtime-mode-active.json");
             DateTime deadline = DateTime.UtcNow.AddSeconds(15);
             while (DateTime.UtcNow < deadline)
             {

@@ -39,6 +39,19 @@ namespace n1ssan_launcher
             if (!string.IsNullOrWhiteSpace(configured) && File.Exists(configured))
                 return Path.GetFullPath(configured);
 
+            // Packaged release layout takes priority over development builds.
+            string packageRoot = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, ".."));
+
+            string packagedInjector = Path.Combine(packageRoot, "injector", InjectorExeName);
+            if (File.Exists(Path.Combine(packageRoot, "runtime", "node.exe")) &&
+                File.Exists(Path.Combine(packageRoot, "runtime", "bridge", "server.js")) &&
+                File.Exists(Path.Combine(packageRoot, "web", "dist", "index.html")) &&
+                File.Exists(Path.Combine(packageRoot, "dll", "n1ssan-dll.dll")) &&
+                File.Exists(packagedInjector))
+            {
+                return packagedInjector;
+            }
             // Prefer the maintained v2 project build over any copied executable
             // beside the launcher. A stale adjacent injector can otherwise take
             // precedence and reopen a console even after v2 has been rebuilt.
@@ -101,6 +114,19 @@ namespace n1ssan_launcher
                 RedirectStandardError = true,
             };
 
+            string packageRootForDll = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, ".."));
+
+            string packagedDll = Path.Combine(packageRootForDll, "dll", "n1ssan-dll.dll");
+
+            if (File.Exists(packagedDll) &&
+                Path.GetFullPath(executable).StartsWith(
+                    Path.Combine(packageRootForDll, "injector") + Path.DirectorySeparatorChar,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                startInfo.ArgumentList.Add("--dll");
+                startInfo.ArgumentList.Add(packagedDll);
+            }
             startInfo.ArgumentList.Add("--pid");
             startInfo.ArgumentList.Add(pid.ToString());
             startInfo.ArgumentList.Add("--no-wait");

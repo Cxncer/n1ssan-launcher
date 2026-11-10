@@ -212,8 +212,8 @@ namespace n1ssan_launcher
                 _startupStateMachine.TryTransition(
                     StartupState.WebStarting);
 
-                await _webManager.EnsureRunningAsync(
-                    _bridgeManager.ProjectRoot);
+                if (!_bridgeManager.IsPackagedRelease)
+                    await _webManager.EnsureRunningAsync(_bridgeManager.ProjectRoot);
 
                 // Do not advance if CS2 closed during initialization.
                 if (!IsCS2Running())
@@ -480,7 +480,7 @@ namespace n1ssan_launcher
                     UpdateBridgeStatus(true, "Bridge online / Web starting");
 
                     SetReadiness(
-                        "Starting Obsidian Web at http://127.0.0.1:5173/obsidian.html",
+                        $"Starting Obsidian Web at {_bridgeManager.ArmoryUrl}",
                         false);
 
                     break;
@@ -748,7 +748,7 @@ namespace n1ssan_launcher
         {
             await OpenWorkspaceAsync(
                 "Armory",
-                "http://127.0.0.1:5173/obsidian.html");
+                _bridgeManager.ArmoryUrl);
         }
 
         private async void Loadout_Click(
@@ -757,7 +757,7 @@ namespace n1ssan_launcher
         {
             await OpenWorkspaceAsync(
                 "Loadout",
-                "http://127.0.0.1:5173/loadout");
+                _bridgeManager.LoadoutUrl);
         }
 
         private async Task OpenWorkspaceAsync(
@@ -784,6 +784,7 @@ namespace n1ssan_launcher
                     SetReadiness($"Selecting {workspaceName} runtime mode...", false);
 
                     await _bridgeManager.EnsureRunningAsync(resetRuntimeMode: false);
+                if (!_bridgeManager.IsPackagedRelease)
                     await _webManager.EnsureRunningAsync(_bridgeManager.ProjectRoot);
 
                     Cs2Instance? game = FindCs2();
