@@ -49,16 +49,29 @@ namespace n1ssan_launcher
 
         private bool TryResolvePackageRoot(out string root)
         {
-            string candidate = Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, ".."));
+            string baseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+            string[] candidates =
+            {
+                baseDirectory,
+                Path.GetFullPath(Path.Combine(baseDirectory, ".."))
+            };
 
-            bool valid =
-                File.Exists(Path.Combine(candidate, "runtime", "node.exe")) &&
-                File.Exists(Path.Combine(candidate, "runtime", "bridge", "server.js")) &&
-                File.Exists(Path.Combine(candidate, "web", "dist", "index.html"));
+            foreach (string candidate in candidates)
+            {
+                bool valid =
+                    File.Exists(Path.Combine(candidate, "runtime", "node.exe")) &&
+                    File.Exists(Path.Combine(candidate, "runtime", "bridge", "server.js")) &&
+                    File.Exists(Path.Combine(candidate, "web", "dist", "index.html"));
 
-            root = valid ? candidate : string.Empty;
-            return valid;
+                if (valid)
+                {
+                    root = candidate;
+                    return true;
+                }
+            }
+
+            root = string.Empty;
+            return false;
         }
 
         public async Task EnsureRunningAsync(bool resetRuntimeMode = true)
