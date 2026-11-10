@@ -1,4 +1,4 @@
-<Window x:Class="n1ssan_launcher.MainWindow" Icon="assets/icons/n1ssan-black.ico" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="CS2 INTEGRATION" Width="290" Height="480" MinWidth="290" MinHeight="480" MaxWidth="290" MaxHeight="480" WindowStartupLocation="CenterScreen" AllowsTransparency="True" Background="Transparent" Foreground="{StaticResource PrimaryTextBrush}" FontFamily="Segoe UI" ResizeMode="CanMinimize" WindowStyle="None">
+<Window x:Class="n1ssan_launcher.MainWindow" Icon="assets/icons/n1ssan-black.png" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="CS2 INTEGRATION" Width="290" Height="480" MinWidth="290" MinHeight="480" MaxWidth="290" MaxHeight="480" WindowStartupLocation="CenterScreen" AllowsTransparency="True" Background="Transparent" Foreground="{StaticResource PrimaryTextBrush}" FontFamily="Segoe UI" ResizeMode="CanMinimize" WindowStyle="None">
     <Window.Resources>
         <Style x:Key="GlassOptionButton" TargetType="Button">
             <Setter Property="Background" Value="#251C241F"/>
