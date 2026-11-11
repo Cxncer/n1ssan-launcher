@@ -40,10 +40,14 @@ namespace n1ssan_launcher
                 ? "http://127.0.0.1:3210/loadout"
                 : "http://127.0.0.1:5173/loadout";
         public string ConfigDirectory =>
+        public string ProductionRootDirectory =>
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "n1ssan",
                 "configs");
+
+        public string ProductionDataDirectory =>
+            Path.Combine(ProductionRootDirectory, "configs");
 
         public string ProjectRoot =>
             IsPackagedRelease ? PackageRoot : ResolveBridgeRoot();
@@ -240,6 +244,15 @@ namespace n1ssan_launcher
                 "Could not locate the n1ssan-web-bridge project.");
         }
 
+        private static string ResolveDataFile(string bridgeRoot)
+        {
+            string? configured =
+                Environment.GetEnvironmentVariable("N1SSAN_DATA_FILE");
+
+            return string.IsNullOrWhiteSpace(configured)
+                ? Path.Combine(bridgeRoot, "configs", "n1ssan-data.json")
+                : Path.GetFullPath(configured);
+        }
         private static async Task ResetRuntimeModeAsync()
         {
             using var response = await Client.PostAsync(
@@ -286,6 +299,7 @@ namespace n1ssan_launcher
             // acknowledge that it has prepared and activated the selected mode.
             string acknowledgementPath = Path.Combine(
                 ConfigDirectory,
+                IsPackagedRelease ? ProductionRootDirectory : ProjectRoot,
                 "runtime-mode-active.json");
             DateTime deadline = DateTime.UtcNow.AddSeconds(15);
             while (DateTime.UtcNow < deadline)
