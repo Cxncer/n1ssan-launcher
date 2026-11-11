@@ -19,7 +19,7 @@ namespace n1ssan_launcher
             string? configured = Environment.GetEnvironmentVariable("N1SSAN_DATA_FILE");
 
             string path = string.IsNullOrWhiteSpace(configured)
-                ? System.IO.Path.Combine(bridgeRoot, "n1ssan-data.json")
+                ? System.IO.Path.Combine(bridgeRoot, "configs", "n1ssan-data.json")
                 : System.IO.Path.GetFullPath(configured);
 
             if (!File.Exists(path))
