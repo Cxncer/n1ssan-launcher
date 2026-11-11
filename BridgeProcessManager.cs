@@ -39,10 +39,12 @@ namespace n1ssan_launcher
             IsPackagedRelease
                 ? "http://127.0.0.1:3210/loadout"
                 : "http://127.0.0.1:5173/loadout";
+        public string ConfigDirectory =>
         public string ProductionRootDirectory =>
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "n1ssan");
+                "n1ssan",
+                "configs");
 
         public string ProductionDataDirectory =>
             Path.Combine(ProductionRootDirectory, "configs");
@@ -85,12 +87,8 @@ namespace n1ssan_launcher
                 ? Path.Combine(packageRoot, "runtime")
                 : ProjectRoot;
 
-            string dataFile = packaged
-                ? Path.Combine(ProductionDataDirectory, "n1ssan-data.json")
-                : ResolveDataFile(bridgeRoot);
-
-            if (packaged)
-                Directory.CreateDirectory(ProductionDataDirectory);
+            string dataFile = Path.Combine(ConfigDirectory, "n1ssan-data.json");
+            Directory.CreateDirectory(ConfigDirectory);
 
             if (await IsHealthyAsync())
             {
@@ -116,8 +114,6 @@ namespace n1ssan_launcher
             if (packaged)
             {
                 startInfo.ArgumentList.Add(Path.Combine("bridge", "server.js"));
-                startInfo.Environment["N1SSAN_DATA_DIR"] = ProductionDataDirectory;
-                startInfo.Environment["N1SSAN_DATA_FILE"] = dataFile;
                 startInfo.Environment["N1SSAN_WEB_DIST"] = Path.Combine(packageRoot, "web", "dist");
             }
             else
@@ -257,7 +253,6 @@ namespace n1ssan_launcher
                 ? Path.Combine(bridgeRoot, "configs", "n1ssan-data.json")
                 : Path.GetFullPath(configured);
         }
-
         private static async Task ResetRuntimeModeAsync()
         {
             using var response = await Client.PostAsync(
@@ -303,6 +298,7 @@ namespace n1ssan_launcher
             // The Bridge write is only the request. Wait for the injected DLL to
             // acknowledge that it has prepared and activated the selected mode.
             string acknowledgementPath = Path.Combine(
+                ConfigDirectory,
                 IsPackagedRelease ? ProductionRootDirectory : ProjectRoot,
                 "runtime-mode-active.json");
             DateTime deadline = DateTime.UtcNow.AddSeconds(15);
