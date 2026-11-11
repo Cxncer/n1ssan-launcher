@@ -14,13 +14,13 @@ namespace n1ssan_launcher
     /// </summary>
     internal static class LoadoutPreflight
     {
-        internal static LoadoutPreflightResult Check(string bridgeRoot)
+        internal static LoadoutPreflightResult Check()
         {
-            string? configured = Environment.GetEnvironmentVariable("N1SSAN_DATA_FILE");
-
-            string path = string.IsNullOrWhiteSpace(configured)
-                ? System.IO.Path.Combine(bridgeRoot, "configs", "n1ssan-data.json")
-                : System.IO.Path.GetFullPath(configured);
+            string path = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "n1ssan",
+                "configs",
+                "n1ssan-data.json");
 
             if (!File.Exists(path))
             {
