@@ -66,6 +66,27 @@ namespace n1ssan_launcher
                     WindowStyle = ProcessWindowStyle.Hidden
                 };
 
+                // This launcher closes itself once the browser owns the session,
+                // which breaks the stdout pipe we redirect. Vite must survive
+                // that, or the page loses its dev server mid-session.
+                string stdioGuard = Path.Combine(
+                    projectRoot,
+                    "bridge",
+                    "harden-stdio.mjs");
+
+                if (File.Exists(stdioGuard))
+                {
+                    // Node's ESM loader rejects an absolute Windows path here:
+                    // it reads "E:\..." as the URL scheme "e:". It needs file://.
+                    startInfo.ArgumentList.Add("--import");
+                    startInfo.ArgumentList.Add(new Uri(stdioGuard).AbsoluteUri);
+                }
+                else
+                {
+                    StartupDiagnostics.Write(
+                        "[Obsidian Web] WARNING: stdio guard missing at " + stdioGuard);
+                }
+
                 startInfo.ArgumentList.Add(viteEntry);
                 startInfo.ArgumentList.Add("--host");
                 startInfo.ArgumentList.Add("127.0.0.1");
