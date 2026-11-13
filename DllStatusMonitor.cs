@@ -9,6 +9,7 @@ namespace n1ssan_launcher
         string BuildId,
         string State,
         string Reason,
+        string Code,
         DateTimeOffset TimestampUtc);
 
     internal static class DllStatusMonitor
@@ -76,9 +77,15 @@ namespace n1ssan_launcher
             {
                 string line = File.ReadAllText(path).Trim();
                 string[] fields = line.Split('|');
-                if (fields.Length != 7 ||
+
+                // Protocol 1 records carry 7 fields; protocol 2 appends the shared
+                // failure classification as code=<CODE>.
+                const int ProtocolV1Fields = 7;
+                const int ProtocolV2Fields = 8;
+
+                if ((fields.Length != ProtocolV1Fields && fields.Length != ProtocolV2Fields) ||
                     fields[0] != "N1SSAN_STATUS" ||
-                    fields[1] != "1" ||
+                    (fields[1] != "1" && fields[1] != "2") ||
                     !int.TryParse(fields[3], NumberStyles.None,
                         CultureInfo.InvariantCulture, out int reportedPid) ||
                     reportedPid != processId ||
@@ -93,8 +100,16 @@ namespace n1ssan_launcher
 
                 string state = fields[5].Trim();
                 string reason = fields[6].Substring("reason=".Length);
+
+                string code = FailureCatalog.None;
+                if (fields.Length == ProtocolV2Fields &&
+                    fields[7].StartsWith("code=", StringComparison.Ordinal))
+                {
+                    code = fields[7].Substring("code=".Length).Trim();
+                }
+
                 snapshot = new DllStatusSnapshot(
-                    reportedPid, fields[4], state, reason, timestamp);
+                    reportedPid, fields[4], state, reason, code, timestamp);
 
                 TimeSpan age = DateTimeOffset.UtcNow - timestamp;
                 if (age < TimeSpan.FromMinutes(-5))
@@ -109,7 +124,7 @@ namespace n1ssan_launcher
                 if (state == "FAILED")
                 {
                     isFailure = true;
-                    message = $"DLL failed · {reason}";
+                    message = "DLL failed · " + FailureCatalog.Describe(reason, code);
                     return true;
                 }
 
@@ -136,7 +151,7 @@ namespace n1ssan_launcher
                         // The DLL contract treats DEGRADED as initialized with an optional
                         // feature missing, so it satisfies the DOMINATE readiness check.
                         isReady = true;
-                        message = $"DLL ready (degraded) · {reason}";
+                        message = $"DLL ready (degraded) · {FailureCatalog.Describe(reason, code)}";
                         break;
                     default:
                         message = $"DLL state: {state}";

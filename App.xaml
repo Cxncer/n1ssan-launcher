@@ -4,22 +4,28 @@
              StartupUri="WelcomeWindow.xaml">
 
     <Application.Resources>
+      <ResourceDictionary>
 
-        <!-- Core palette -->
-        <SolidColorBrush x:Key="BackgroundBrush" Color="#121212"/>
-        <SolidColorBrush x:Key="SurfaceBrush" Color="#1B1B1B"/>
-        <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#242424"/>
-        <SolidColorBrush x:Key="BorderBrush" Color="#303030"/>
+        <ResourceDictionary.MergedDictionaries>
+            <!-- Shared palette: mirrors src/shared/tokens.css in the web Bridge. -->
+            <ResourceDictionary Source="Theme/DesignTokens.xaml"/>
+        </ResourceDictionary.MergedDictionaries>
+
+        <!-- Core palette (aliases of the shared tokens) -->
+        <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource N1Surface0Color}"/>
+        <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource N1Surface1Color}"/>
+        <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource N1Surface3Color}"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource N1BorderColor}"/>
 
         <!-- Typography -->
-        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F5F5F5"/>
-        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#A0A0A0"/>
-        <SolidColorBrush x:Key="MutedTextBrush" Color="#686868"/>
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="{StaticResource N1TextColor}"/>
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="{StaticResource N1TextSecondaryColor}"/>
+        <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource N1TextMutedColor}"/>
 
         <!-- Status -->
-        <SolidColorBrush x:Key="AccentBrush" Color="#25D366"/>
-        <SolidColorBrush x:Key="ErrorBrush" Color="#E5484D"/>
-        <SolidColorBrush x:Key="WarningBrush" Color="#E5A93D"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource N1AccentColor}"/>
+        <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource N1DangerColor}"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource N1WarningColor}"/>
 
         <!-- Shared button style -->
         <Style x:Key="WindowControlButton" TargetType="Button">
@@ -82,5 +88,6 @@
             <GradientStop Color="#151515" Offset="1.0"/>
         </LinearGradientBrush>
 
+      </ResourceDictionary>
     </Application.Resources>
 </Application>

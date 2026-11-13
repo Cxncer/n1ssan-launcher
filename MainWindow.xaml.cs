@@ -327,7 +327,9 @@ namespace n1ssan_launcher
                         return (
                             false,
                             "DLL initialization failed: " +
-                                (snapshot?.Reason ?? "unknown error"),
+                                FailureCatalog.Describe(
+                                    snapshot?.Reason ?? "unknown error",
+                                    snapshot?.Code),
                             snapshot);
                     }
 

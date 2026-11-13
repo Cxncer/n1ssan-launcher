@@ -1,0 +1,41 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Shared design tokens (WPF mirror of n1ssan-web-bridge/src/shared/tokens.css).
+        Keep these values identical to the CSS tokens so the launcher, catalogue,
+        Armory, and Loadout read as one product. Rarity colors are not used here.
+    -->
+
+    <!-- Surfaces -->
+    <Color x:Key="N1Surface0Color">#101213</Color>
+    <Color x:Key="N1Surface1Color">#171C1A</Color>
+    <Color x:Key="N1Surface2Color">#1B211D</Color>
+    <Color x:Key="N1Surface3Color">#242C27</Color>
+    <Color x:Key="N1BorderColor">#303834</Color>
+    <Color x:Key="N1BorderStrongColor">#45564A</Color>
+
+    <!-- Text -->
+    <Color x:Key="N1TextColor">#EEF0ED</Color>
+    <Color x:Key="N1TextSecondaryColor">#B0B8B2</Color>
+    <Color x:Key="N1TextMutedColor">#68736D</Color>
+
+    <!-- Status -->
+    <Color x:Key="N1AccentColor">#1ED760</Color>
+    <Color x:Key="N1WarningColor">#E5A36D</Color>
+    <Color x:Key="N1DangerColor">#E5484D</Color>
+
+    <SolidColorBrush x:Key="N1BackgroundBrush" Color="{StaticResource N1Surface0Color}" />
+    <SolidColorBrush x:Key="N1SurfaceBrush" Color="{StaticResource N1Surface1Color}" />
+    <SolidColorBrush x:Key="N1SurfaceRaisedBrush" Color="{StaticResource N1Surface2Color}" />
+    <SolidColorBrush x:Key="N1SurfaceHoverBrush" Color="{StaticResource N1Surface3Color}" />
+    <SolidColorBrush x:Key="N1BorderBrush" Color="{StaticResource N1BorderColor}" />
+    <SolidColorBrush x:Key="N1BorderStrongBrush" Color="{StaticResource N1BorderStrongColor}" />
+    <SolidColorBrush x:Key="N1TextBrush" Color="{StaticResource N1TextColor}" />
+    <SolidColorBrush x:Key="N1TextSecondaryBrush" Color="{StaticResource N1TextSecondaryColor}" />
+    <SolidColorBrush x:Key="N1TextMutedBrush" Color="{StaticResource N1TextMutedColor}" />
+    <SolidColorBrush x:Key="N1AccentBrush" Color="{StaticResource N1AccentColor}" />
+    <SolidColorBrush x:Key="N1WarningBrush" Color="{StaticResource N1WarningColor}" />
+    <SolidColorBrush x:Key="N1DangerBrush" Color="{StaticResource N1DangerColor}" />
+
+</ResourceDictionary>
