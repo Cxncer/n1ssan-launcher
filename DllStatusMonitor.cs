@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Text.Json;
 
 namespace n1ssan_launcher
 {
@@ -11,6 +12,15 @@ namespace n1ssan_launcher
         string Reason,
         string Code,
         DateTimeOffset TimestampUtc);
+
+    // What the DLL's schema sweep found on this CS2 build. `CoreTrusted` false
+    // means the runtime refused to write, because the field table is stale.
+    internal sealed record ArmoryOffsetsReport(
+        int Checked,
+        int Applied,
+        int Unresolved,
+        bool CoreTrusted,
+        bool SpawnTime);
 
     internal static class DllStatusMonitor
     {
@@ -46,6 +56,73 @@ namespace n1ssan_launcher
 
                 return directories.ToArray();
             }
+        }
+
+        private static int ReadInt(JsonElement element, string name)
+        {
+            return element.TryGetProperty(name, out JsonElement value) &&
+                value.ValueKind == JsonValueKind.Number &&
+                value.TryGetInt32(out int parsed)
+                ? parsed
+                : 0;
+        }
+
+        /// <summary>
+        /// Reads the Armory status document the injected DLL publishes next to its
+        /// status record. Only a fresh document is accepted: one from a closed
+        /// session must never decide whether this one may write.
+        /// </summary>
+        public static bool TryReadArmoryOffsets(int processId, out ArmoryOffsetsReport? report)
+        {
+            report = null;
+
+            string fileName = $"armory-{processId}.json";
+            foreach (string directory in StatusDirectories)
+            {
+                string candidate = Path.Combine(directory, fileName);
+                if (!File.Exists(candidate))
+                    continue;
+
+                try
+                {
+                    using JsonDocument document = JsonDocument.Parse(File.ReadAllText(candidate));
+                    JsonElement root = document.RootElement;
+
+                    if (!root.TryGetProperty("generatedAt", out JsonElement generated) ||
+                        generated.ValueKind != JsonValueKind.String ||
+                        !DateTimeOffset.TryParse(generated.GetString(), CultureInfo.InvariantCulture,
+                            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                            out DateTimeOffset publishedAt) ||
+                        DateTimeOffset.UtcNow - publishedAt > TimeSpan.FromMinutes(2))
+                    {
+                        return false;
+                    }
+
+                    if (!root.TryGetProperty("offsets", out JsonElement offsets) ||
+                        offsets.ValueKind != JsonValueKind.Object)
+                    {
+                        // Older builds did not publish the sweep; nothing to gate on.
+                        return false;
+                    }
+
+                    report = new ArmoryOffsetsReport(
+                        ReadInt(offsets, "checked"),
+                        ReadInt(offsets, "applied"),
+                        ReadInt(offsets, "unresolved"),
+                        !(offsets.TryGetProperty("coreTrusted", out JsonElement trusted) &&
+                          trusted.ValueKind == JsonValueKind.False),
+                        offsets.TryGetProperty("spawnTime", out JsonElement spawn) &&
+                            spawn.ValueKind == JsonValueKind.True);
+
+                    return true;
+                }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is JsonException)
+                {
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         public static bool TryRead(int processId, out DllStatusSnapshot? snapshot,

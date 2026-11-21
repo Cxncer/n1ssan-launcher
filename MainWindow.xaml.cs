@@ -265,6 +265,27 @@ namespace n1ssan_launcher
                 StartupDiagnostics.Write(
                     "[DOMINATE] Neutral DLL is ready: " + dllMessage +
                     (dllSnapshot != null ? $" (build {dllSnapshot.BuildId})" : string.Empty));
+
+                // Pre-flight gate: a schema sweep that lost an econ field means
+                // the hardcoded offsets belong to another CS2 build. The runtime
+                // already refuses to write; stop here instead of launching a
+                // session that silently keeps every real skin.
+                if (DllStatusMonitor.TryReadArmoryOffsets(game.Pid, out ArmoryOffsetsReport? offsets) &&
+                    offsets != null)
+                {
+                    StartupDiagnostics.Write(
+                        $"[DOMINATE] Offsets: {offsets.Applied}/{offsets.Checked} found by name, " +
+                        $"{offsets.Unresolved} unresolved, write gate " +
+                        (offsets.CoreTrusted ? "open" : "CLOSED") + ".");
+
+                    if (!offsets.CoreTrusted)
+                    {
+                        throw new InvalidOperationException(
+                            "This CS2 build no longer matches the offset table: " +
+                            $"{offsets.Unresolved} fields could not be found, so the native runtime " +
+                            "disabled skin writes. Update the offsets and try again.");
+                    }
+                }
                 _startupStateMachine.TryTransition(StartupState.Ready);
             }
             catch (Exception ex)
